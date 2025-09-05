@@ -10,12 +10,15 @@
     .quiz-container { max-width: 700px; margin: auto; }
     .question { margin-bottom: 20px; font-size: 18px; }
     .choices { margin-top: 15px; display: flex; flex-direction: column; align-items: center; }
-    .choices button { margin: 5px; padding: 10px 16px; border-radius: 6px; cursor: pointer; min-width: 150px; text-align: center; }
+    .choice-wrapper { display: flex; align-items: center; margin: 5px 0; }
+    .choice-btn { margin-right: 8px; padding: 10px 16px; border-radius: 6px; cursor: pointer; min-width: 200px; text-align: center; }
+    .sound-btn { padding: 4px 6px; font-size: 12px; border-radius: 50%; cursor: pointer; }
     .progress { width: 100%; background: #ddd; height: 20px; border-radius: 10px; margin: 20px 0; }
     .bar { height: 100%; width: 0; background: #4caf50; border-radius: 10px; }
     .hidden { display: none; }
     .nav-buttons { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
     .nav-buttons button { padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+    .feedback { margin-top: 15px; font-weight: bold; color: #333; text-align: left; }
   </style>
 </head>
 <body>
@@ -38,7 +41,6 @@
       { w:"house", jp:"家", s:"This ______ is big.", t:"この家は大きいです。" }
     ];
 
-    // 50問に拡張（足りない分はダミーで補充）
     while (WORDS.length < 50) {
       WORDS.push({ w:`word${WORDS.length+1}`, jp:"訳", s:`This is question ______ number ${WORDS.length+1}.`, t:"これはダミー問題です。" });
     }
@@ -71,34 +73,51 @@
       username = document.getElementById("username").value.trim();
       const q = WORDS[currentIndex];
 
-      let otherWords = WORDS.filter((w, idx) => idx !== currentIndex).map(w => w.w);
+      let otherWords = WORDS.filter((w, idx) => idx !== currentIndex).map(w => w);
       otherWords = shuffle(otherWords).slice(0, 3);
-      let options = shuffle([q.w, ...otherWords]);
+      let options = shuffle([q, ...otherWords]);
 
       const quizDiv = document.getElementById("quiz");
       quizDiv.innerHTML = `
         <div class="question">
           <p>Q${currentIndex+1}: ${q.s}
-          <button onclick="speak('${q.s.replace("______","...")}')">🔊</button></p>
+          <button class="sound-btn" onclick="speak('${q.s.replace("______","...")}')">🔊</button></p>
           <div class="choices">
             ${options.map(opt =>
-              `<div><button onclick=\"selectAnswer('${opt}')\">${opt}</button>
-               <button onclick=\"speak('${opt}')\">🔊</button></div>`
+              `<div class=\"choice-wrapper\">
+                 <button class=\"choice-btn\" onclick=\"selectAnswer('${opt.w}', '${opt.jp}', '${q.t}', ${JSON.stringify(options).replace(/"/g,'&quot;')})\">${opt.w}</button>
+                 <button class=\"sound-btn\" onclick=\"speak('${opt.w}')\">🔊</button>
+               </div>`
             ).join("")}
           </div>
           <div class="nav-buttons">
             <button onclick="goBack()" ${currentIndex===0?"disabled":""}>⬅ 戻る</button>
             <button onclick="skipQuestion()">➡ スキップ</button>
           </div>
+          <div id="feedback" class="feedback hidden"></div>
         </div>
       `;
       updateProgress();
     }
 
-    function selectAnswer(choice) {
+    function selectAnswer(choice, choiceJp, sentenceJp, allOptions) {
+      const q = WORDS[currentIndex];
       answers[currentIndex] = choice;
-      currentIndex++;
-      loadQuestion();
+      const isCorrect = (choice === q.w);
+
+      let allTranslations = allOptions.map(opt => `${opt.w}: ${opt.jp}`).join('<br>');
+
+      const feedbackDiv = document.getElementById("feedback");
+      feedbackDiv.classList.remove("hidden");
+      feedbackDiv.innerHTML = `${isCorrect ? "✅ 正解!" : "❌ 不正解"}<br>
+        正解: ${q.w} (${q.jp})<br>
+        文の和訳: ${q.t}<br><br>
+        🔎 選択肢の和訳:<br>${allTranslations}`;
+
+      setTimeout(() => {
+        currentIndex++;
+        loadQuestion();
+      }, 3000);
     }
 
     function skipQuestion() {
@@ -133,7 +152,8 @@
         resultHtml += `<li style="text-align:left;">
           <b>英文:</b> ${q.s}<br>
           <b>Your answer:</b> ${ans} ${isCorrect ? "✅" : "❌"}<br>
-          <b>Correct:</b> ${correct} (${q.jp})
+          <b>Correct:</b> ${correct} (${q.jp})<br>
+          <b>和訳:</b> ${q.t}
         </li><br>`;
       });
       resultHtml += `</ol><h3>Score: ${score} / ${WORDS.length}</h3>`;
@@ -169,7 +189,7 @@
       WORDS.forEach((q,i) => {
         const ans = answers[i] || "未回答";
         const correct = q.w;
-        const text = `Q${i+1}: ${q.s}\nYour answer: ${ans}\nCorrect: ${correct}`;
+        const text = `Q${i+1}: ${q.s}\nYour answer: ${ans}\nCorrect: ${correct}\nJP: ${q.t}`;
         const split = doc.splitTextToSize(text, 180);
         doc.text(split, 10, y);
         y += split.length*5 + 5;
