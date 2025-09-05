@@ -35,17 +35,13 @@
       { w:"dog", jp:"犬", s:"The ______ is barking.", t:"犬が吠えています。" },
       { w:"car", jp:"車", s:"That ______ is very fast.", t:"あの車はとても速いです。" },
       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-       { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
       { w:"house", jp:"家", s:"This ______ is big.", t:"この家は大きいです。" }
     ];
+
+    // 50問に拡張（足りない分はダミーで補充）
+    while (WORDS.length < 50) {
+      WORDS.push({ w:`word${WORDS.length+1}`, jp:"訳", s:`This is question ______ number ${WORDS.length+1}.`, t:"これはダミー問題です。" });
+    }
 
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
