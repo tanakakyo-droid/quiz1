@@ -1,211 +1,844 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>B1 Vocabulary Quiz Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英検準一級単語クイズ</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
-    .quiz-container { max-width: 700px; margin: auto; }
-    .question { margin-bottom: 20px; font-size: 18px; }
-    .choices { margin-top: 15px; display: flex; flex-direction: column; align-items: center; }
-    .choice-wrapper { display: flex; align-items: center; margin: 5px 0; }
-    .choice-btn { margin-right: 8px; padding: 10px 16px; border-radius: 6px; cursor: pointer; min-width: 200px; text-align: center; }
-    .sound-btn { padding: 4px 6px; font-size: 12px; border-radius: 50%; cursor: pointer; }
-    .progress { width: 100%; background: #ddd; height: 20px; border-radius: 10px; margin: 20px 0; }
-    .bar { height: 100%; width: 0; background: #4caf50; border-radius: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0; 
+      background: linear-gradient(to bottom, #e0ffe0, #ffffff);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      background: #ffffff;  
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-bottom: 1px solid #ddd;
+      position: relative; 
+      z-index: 10;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #title {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #start-screen {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 40px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    #start-screen h1 {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+    #start-screen p {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+    #username {
+      padding: 12px;
+      font-size: 20px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      display: block;
+      margin: 0 auto 20px;
+    }
+    
+    .quiz-container {
+      max-width: 800px;
+      width: 100%;
+      min-height: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+    .input-field {
+      margin: 10px;
+      padding: 10px;
+      font-size: 22px;
+      width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .input-field:disabled {
+        background-color: #f2f2f2;
+        color: #555;
+    }
+    .button {
+      margin: 0 5px;
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #007BFF;
+      color: white;
+      transition: background-color 0.2s;
+    }
+    .button:hover {
+        background: #0056b3;
+    }
+
+    #header-buttons-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    #header-buttons-container div {
+      margin-bottom: 5px;
+    }
+    #header-buttons-container div:last-child {
+      margin-bottom: 0;
+    }
+
+    .circle-button {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      margin-left: 8px;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    .circle-button:hover {
+        background: #0056b3;
+    }
     .hidden { display: none; }
-    .nav-buttons { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-    .nav-buttons button { padding: 8px 14px; border-radius: 6px; cursor: pointer; }
-    .feedback { margin-top: 15px; font-weight: bold; color: #333; text-align: left; }
+    #question { font-size: 24px; margin-bottom: 20px; }
+    #question .jp-translation {
+      font-size: 18px;
+      color: #555;
+      margin-top: 8px;
+    }
+    #translation { font-size: 20px; margin-top: 15px; }
+    #input-wrapper {
+      position: relative;
+      min-height: 60px;
+    }
+    #feedback {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(120px, -50%);
+      width: 160px;
+      text-align: left;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #feedback.correct { color: #28a745; }
+    #feedback.incorrect { color: #dc3545; }
+    .progress-bar {
+      height: 25px;
+      background-color: #e9ecef;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background-color: #007BFF;
+      border-radius: 10px;
+      transition: width 0.4s ease-in-out;
+    }
+
+    #history-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 250px;
+      overflow-y: auto;
+      background-color: #f0f0f0;
+      border-top: 2px solid #ccc;
+      padding: 10px;
+      box-sizing: border-box;
+      text-align: left;
+      transform: translateY(100%); 
+      transition: transform 0.3s ease-in-out; 
+      z-index: 100;
+    }
+    #history-container.show {
+      transform: translateY(0);
+    }
+    
+    #history-container h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #history-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #history-list li {
+      background-color: #fff;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+      cursor: pointer; 
+      transition: background-color 0.2s;
+    }
+    #history-list li:hover {
+      background-color: #e9ecef; 
+    }
+
+    #clearHistoryBtn {
+      font-size: 12px;
+      padding: 4px 8px;
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 15px;
+    }
+    #clearHistoryBtn:hover {
+      background-color: #c82333;
+    }
+
+    /* ▼▼▼ 変更点 ▼▼▼ (スマートフォン用のスタイルを追加) */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column; /* ヘッダー内の要素を縦積みに */
+        padding: 10px 5px;
+      }
+      #title {
+        font-size: 20px; /* タイトルの文字を小さく */
+        margin-bottom: 10px;
+      }
+      #header-buttons-container {
+        align-items: center; /* ボタンを中央揃えに */
+      }
+      .button {
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      /* スタート画面とクイズ画面の幅を画面に合わせる */
+      #start-screen, .quiz-container {
+        width: 95%;
+        margin: 10px auto;
+        padding: 15px;
+        min-height: 0; /* 高さが自動調整されるように */
+      }
+      #start-screen h1 {
+        font-size: 24px;
+      }
+
+      /* 入力欄の幅を画面に合わせる */
+      #username, .input-field {
+        width: 90%;
+        box-sizing: border-box;
+        font-size: 18px;
+      }
+
+      #question {
+        font-size: 18px;
+      }
+      #feedback {
+        /* 正誤判定の表示位置を横から下へ変更 */
+        position: static;
+        transform: none;
+        text-align: center;
+        width: 100%;
+        margin-top: 10px;
+        font-size: 18px;
+      }
+      #input-wrapper {
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #history-container {
+        max-height: 40%; /* 履歴エリアが画面の40%まで使えるように */
+      }
+    }
+    /* ▲▲▲ 変更点 ▲▲▲ */
+
   </style>
 </head>
 <body>
-  <div class="quiz-container">
-    <h1>B1 Vocabulary Quiz</h1>
-    <label>名前: <input type="text" id="username" placeholder="Your name"></label>
+  <header class="hidden">
+    <div id="title">英検準一級単語クイズ</div>
+    <div id="header-buttons-container">
+      <div id="top-row-buttons">
+        <button class="button" id="toggleHistoryBtn">履歴を見る</button>
+        <button class="button hidden" id="backToStartBtn">最初に戻る</button>
+        <button class="button hidden" id="retryBtn">間違えた問題に再挑戦</button>
+      </div>
+      <div id="bottom-row-buttons">
+        <button class="button hidden" id="pdfBtn">Download PDF</button>
+        <button class="button hidden" id="wrongPdfBtn">Download Wrong-vocab</button>
+        <button class="button hidden" id="downloadAllBtn">全単語リストをPDF化</button>
+      </div>
+    </div>
+  </header>
 
-    <div class="progress"><div id="progress-bar" class="bar"></div></div>
-    <div id="quiz"></div>
-    <div id="result" class="hidden"></div>
-    <button id="finishBtn" onclick="finishQuiz()" class="hidden">📄 Save as PDF</button>
+  <div id="start-screen">
+    <h1>英検準一級単語クイズ</h1>
+    <p>Please enter your name to start the quiz.</p>
+    <input type="text" id="username" placeholder="Enter your name">
+    <button class="button" id="startBtn">Start Quiz</button>
+  </div>
+  
+  <div class="quiz-container hidden">
+    <div id="question"></div>
+    <div id="input-wrapper">
+      <div id="inputs"></div>
+      <div id="feedback"></div>
+    </div>
+    <button class="button" id="submitBtn">Submit</button>
+    <button class="button hidden" id="prevBtn">前の問題へ</button>
+    <button class="button hidden" id="nextBtn">Next</button>
+    <button class="button hidden" id="showAllBtn">Show All Results</button>
+    <div id="translation"></div>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div id="scoreBoard"></div>
+  </div>
+
+  <div id="history-container">
+    <h2>プレイ履歴<button id="clearHistoryBtn">全消去</button></h2>
+    <ul id="history-list"></ul>
   </div>
 
   <script>
-    let WORDS = [
-      { w:"apple", jp:"りんご", s:"I ate an ______ yesterday.", t:"私は昨日りんごを食べました。" },
-      { w:"dog", jp:"犬", s:"The ______ is barking.", t:"犬が吠えています。" },
-      { w:"car", jp:"車", s:"That ______ is very fast.", t:"あの車はとても速いです。" },
-      { w:"book", jp:"本", s:"I am reading a ______.", t:"私は本を読んでいます。" },
-      { w:"house", jp:"家", s:"This ______ is big.", t:"この家は大きいです。" }
+    // JavaScript部分は変更ありませんので、そのままです
+    const allQuestions = [
+        { "sentence": "Patients are ___ to infection just after surgery.", "answers": ["vulnerable"], "translation": "Patients are vulnerable to infection just after surgery.", "jpTranslation": "患者は手術の直後、感染症にかかりやすくなる。", "blanksTranslation": ["かかりやすい"] },
+        { "sentence": "Make sure to ___ all the warning signs.", "answers": ["heed"], "translation": "Make sure to heed all the warning signs.", "jpTranslation": "すべての警戒標識に気をつけるようにしてください。", "blanksTranslation": ["気をつける"] },
     ];
+    
+    const CORRECT_PASSWORD = '1234';
 
-    while (WORDS.length < 50) {
-      WORDS.push({ w:`word${WORDS.length+1}`, jp:"訳", s:`This is question ______ number ${WORDS.length+1}.`, t:"これはダミー問題です。" });
-    }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    WORDS = shuffle(WORDS);
-
-    let currentIndex = 0;
-    let answers = [];
-    let username = "";
-
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'en-US';
-      speechSynthesis.speak(utter);
-    }
-
+    let playerName = '';
+    let questions = [];
+    let current = 0, score = 0;
+    let lastAnsweredIndex = -1;
+    let userAnswers = [], incorrectQuestions = [], retryMode = false, wrongAnswers = [];
+    let keyupLock = false;
+    
+    const header = document.querySelector("header");
+    const startScreen = document.getElementById("start-screen");
+    const startBtn = document.getElementById("startBtn");
+    const usernameInput = document.getElementById("username");
+    const quizContainer = document.querySelector(".quiz-container");
+    const qEl = document.getElementById("question");
+    const inputEl = document.getElementById("inputs");
+    const feedbackEl = document.getElementById("feedback");
+    const translationEl = document.getElementById("translation");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const pdfBtn = document.getElementById("pdfBtn");
+    const wrongPdfBtn = document.getElementById("wrongPdfBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const showAllBtn = document.getElementById("showAllBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const progressBar = document.getElementById("progressBar");
+    const progressEl = document.getElementById("progress");
+    const downloadAllBtn = document.getElementById("downloadAllBtn");
+    const backToStartBtn = document.getElementById("backToStartBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
+    const historyContainer = document.getElementById("history-container");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    
     function loadQuestion() {
-      if (currentIndex >= WORDS.length) {
-        showResult();
-        return;
+      retryBtn.classList.add("hidden"); 
+      prevBtn.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      showAllBtn.classList.add("hidden");
+      qEl.style.marginBottom = "";
+      translationEl.style.marginTop = "";
+      const q = questions[current];
+      qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+      inputEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      translationEl.textContent = "";
+      q.answers.forEach((_, i) => {
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.className = "input-field";
+        inp.id = "ans" + i;
+        inputEl.appendChild(inp);
+      });
+      const inputs = document.querySelectorAll(".input-field");
+      inputs[0].focus();
+      inputs.forEach((inp, idx) => {
+        inp.addEventListener("keydown", e => {
+          if (e.key === "Enter") { 
+            e.preventDefault(); 
+            if (idx < inputs.length - 1) {
+                inputs[idx + 1].focus();
+            } else {
+                keyupLock = true;
+                checkAnswer();
+            }
+          }
+        });
+      });
+      if (userAnswers[current]) {
+          inputs.forEach((inp, i) => {
+              inp.value = userAnswers[current].user[i] || "";
+          });
       }
-      username = document.getElementById("username").value.trim();
-      const q = WORDS[currentIndex];
-
-      let otherWords = WORDS.filter((w, idx) => idx !== currentIndex).map(w => w);
-      otherWords = shuffle(otherWords).slice(0, 3);
-      let options = shuffle([q, ...otherWords]);
-
-      const quizDiv = document.getElementById("quiz");
-      quizDiv.innerHTML = `
-        <div class="question">
-          <p>Q${currentIndex+1}: ${q.s}
-          <button class="sound-btn" onclick="speak('${q.s.replace("______","...")}')">🔊</button></p>
-          <div class="choices">
-            ${options.map(opt =>
-              `<div class=\"choice-wrapper\">
-                 <button class=\"choice-btn\" onclick=\"selectAnswer('${opt.w}', '${opt.jp}', '${q.t}', ${JSON.stringify(options).replace(/"/g,'&quot;')})\">${opt.w}</button>
-                 <button class=\"sound-btn\" onclick=\"speak('${opt.w}')\">🔊</button>
-               </div>`
-            ).join("")}
-          </div>
-          <div class="nav-buttons">
-            <button onclick="goBack()" ${currentIndex===0?"disabled":""}>⬅ 戻る</button>
-            <button onclick="skipQuestion()">➡ スキップ</button>
-          </div>
-          <div id="feedback" class="feedback hidden"></div>
-        </div>
-      `;
-      updateProgress();
+      submitBtn.classList.remove("hidden");
+      const progressPercentage = (questions.length > 1) ? Math.round((current / (questions.length - 1)) * 100) : 0;
+      progressEl.style.width = `${progressPercentage}%`;
     }
-
-    function selectAnswer(choice, choiceJp, sentenceJp, allOptions) {
-      const q = WORDS[currentIndex];
-      answers[currentIndex] = choice;
-      const isCorrect = (choice === q.w);
-
-      let allTranslations = allOptions.map(opt => `${opt.w}: ${opt.jp}`).join('<br>');
-
-      const feedbackDiv = document.getElementById("feedback");
-      feedbackDiv.classList.remove("hidden");
-      feedbackDiv.innerHTML = `${isCorrect ? "✅ 正解!" : "❌ 不正解"}<br>
-        正解: ${q.w} (${q.jp})<br>
-        文の和訳: ${q.t}<br><br>
-        🔎 選択肢の和訳:<br>${allTranslations}`;
-
-      setTimeout(() => {
-        currentIndex++;
-        loadQuestion();
-      }, 3000);
+    function recalculateScore() {
+        let newScore = 0;
+        userAnswers.forEach((answer, index) => {
+            if (answer && questions[index]) {
+                const correctAnswers = questions[index].answers;
+                const isCorrect = answer.user.every((userAns, i) => (userAns || "").toLowerCase() === (correctAnswers[i] || "").toLowerCase());
+                if (isCorrect) {
+                    newScore++;
+                }
+            }
+        });
+        score = newScore;
     }
-
-    function skipQuestion() {
-      if (!answers[currentIndex]) {
-        answers[currentIndex] = "未回答";
+    function checkAnswer() {
+      const q = questions[current];
+      let correct = true, answersGiven = [];
+      q.answers.forEach((ans, i) => {
+        const userAns = document.getElementById("ans" + i).value.trim();
+        answersGiven.push(userAns);
+        if (userAns.toLowerCase() !== ans.toLowerCase()) correct = false;
+      });
+      userAnswers[current] = { question: q.sentence, user: answersGiven, correct: q.answers };
+      if (!retryMode) {
+          recalculateScore();
       }
-      currentIndex++;
+      if (!correct) {
+        if (!incorrectQuestions.some(item => item.sentence === q.sentence)) incorrectQuestions.push(q);
+        if (!wrongAnswers.some(item => item.sentence === q.sentence)) wrongAnswers.push(q);
+      } else {
+        incorrectQuestions = incorrectQuestions.filter(item => item.sentence !== q.sentence);
+        wrongAnswers = wrongAnswers.filter(item => item.sentence !== q.sentence);
+      }
+      lastAnsweredIndex = Math.max(lastAnsweredIndex, current);
+      displayAnsweredQuestion(current);
+    }
+    function loadNextNewQuestion() {
+      current++;
       loadQuestion();
     }
+    function displayAnsweredQuestion(index) {
+        current = index;
+        const q = questions[index];
+        const recordedEntry = userAnswers[index];
+        qEl.innerHTML = `<div>Q${index + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+        inputEl.innerHTML = "";
+        q.answers.forEach((_, i) => {
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.className = "input-field";
+            inp.id = "ans" + i;
+            inputEl.appendChild(inp);
+        });
+        const inputs = inputEl.querySelectorAll(".input-field");
+        inputs.forEach((inp, i) => {
+            inp.value = recordedEntry.user[i] || "";
+            inp.disabled = true;
+            const userAnswerText = recordedEntry.user[i] || "";
+            const correctAnswerText = q.answers[i] || "";
+            const wasThisPartCorrect = userAnswerText.toLowerCase() === correctAnswerText.toLowerCase();
+            inp.style.borderColor = wasThisPartCorrect ? '#28a745' : '#dc3545';
+            inp.style.borderWidth = '2px';
+        });
+        submitBtn.classList.add("hidden");
+        const userWasCorrect = recordedEntry.user.join(",").toLowerCase() === recordedEntry.correct.join(",").toLowerCase();
+        feedbackEl.className = "";
+        if (userWasCorrect) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.classList.add("correct");
+        } else {
+            feedbackEl.textContent = "❌ Incorrect!";
+            feedbackEl.classList.add("incorrect");
+        }
+        let highlighted = q.translation;
+        q.answers.forEach(ans => {
+            const regex = new RegExp(`\\b${ans}\\b`, "gi");
+            highlighted = highlighted.replace(regex, `<span style="color:red; font-weight:bold;">${ans}</span>`);
+        });
+        translationEl.innerHTML = `
+            <p><b>英文:</b> ${highlighted} <button class="circle-button" onclick="speak('${q.translation}')">🔊</button></p>
+            <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="circle-button" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
+            <p><b>和訳:</b> ${q.jpTranslation}</p>
+            <p><b>答えの和訳:</b> ${q.blanksTranslation.join(", ")}</p>
+        `;
+        const isLastQuestion = index === questions.length - 1;
+        prevBtn.classList.toggle("hidden", index <= 0);
+        showAllBtn.classList.toggle("hidden", !isLastQuestion);
+        nextBtn.classList.toggle("hidden", isLastQuestion);
+    }
+    function goToPreviousQuestion() {
+        if (current > 0) {
+            current--;
+            loadQuestion();
+        }
+    }
+    function handleNextClick() {
+        if (current < lastAnsweredIndex) {
+            displayAnsweredQuestion(current + 1);
+        } else {
+            loadNextNewQuestion();
+        }
+    }
+    
+    function showAllResults() {
+        progressBar.classList.add("hidden");
+        const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+        const username = playerName || "(No name)";
 
-    function goBack() {
-      if (currentIndex > 0) {
-        currentIndex--;
-        loadQuestion();
+        savePlayHistory(username, finalScoreText);
+        displayPlayHistory();
+        scoreBoard.textContent = `Your score: ${finalScoreText}`;
+        
+        qEl.textContent = "All Results";
+        inputEl.innerHTML = "";
+        feedbackEl.textContent = "";
+        translationEl.innerHTML = "";
+        qEl.style.marginBottom = "0";
+        translationEl.style.marginTop = "5px";
+        translationEl.innerHTML = `<p style="margin: 0;"><b>Name:</b> ${username}</p><p><b>Score:</b> ${finalScoreText}</p>`;
+        
+        userAnswers.forEach((entry, idx) => {
+            if (!entry) return;
+            const originalQuestion = allQuestions.find(q => q.sentence === entry.question);
+            if (!originalQuestion) return;
+            let highlightedSentence = originalQuestion.translation;
+            originalQuestion.answers.forEach(ans => {
+                const regex = new RegExp(`\\b(${ans})\\b`, 'gi');
+                highlightedSentence = highlightedSentence.replace(regex, `<span style="color: red; font-weight: bold;">$1</span>`);
+            });
+            const userAnswersGiven = entry.user.join(", ");
+            const isAnswerCorrect = userAnswersGiven.toLowerCase() === entry.correct.join(", ").toLowerCase();
+            let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>Your Answer:</b> ${userAnswersGiven} <span style="color: #28a745;">✅</span></p>` : `<p style="margin: 5px 0;"><b>Your Answer:</b> <span style="color: #dc3545;">${userAnswersGiven || "(no answer)"}</span> ❌</p>`;
+            const div = document.createElement("div");
+            div.style.cssText = "text-align: left; margin: 15px 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;";
+            div.innerHTML = `<p style="margin: 5px 0;"><b>Q${idx + 1}:</b> ${highlightedSentence}</p><p style="margin: 5px 0; color: #555; font-size: 14px;"><b>和訳:</b> ${originalQuestion.jpTranslation}</p>${yourAnswerHTML}`;
+            translationEl.appendChild(div);
+        });
+
+        pdfBtn.classList.remove("hidden");
+        backToStartBtn.classList.remove("hidden");
+        if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
+        if (incorrectQuestions.length > 0) {
+            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+            retryBtn.classList.remove("hidden");
+        } else {
+            retryBtn.classList.add("hidden");
+        }
+        showAllBtn.classList.add("hidden"); nextBtn.classList.add("hidden"); prevBtn.classList.add("hidden");
+    }
+
+    function savePlayHistory(name, scoreText) {
+      const date = new Date();
+      const formattedDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      const newRecord = { 
+        name: name, 
+        score: scoreText, 
+        date: formattedDate,
+        results: JSON.parse(JSON.stringify(userAnswers))
+      };
+      const history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      history.unshift(newRecord);
+      localStorage.setItem('quizPlayHistory', JSON.stringify(history));
+    }
+
+    function displayPlayHistory() {
+      const history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      const historyList = document.getElementById('history-list');
+      historyList.innerHTML = '';
+      history.forEach(record => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `[${record.date}] ${record.name} - スコア: ${record.score}`;
+        listItem.title = 'クリックしてこの結果をPDFでダウンロード';
+        listItem.addEventListener('click', () => {
+          downloadHistoryPDF(record);
+        });
+        historyList.appendChild(listItem);
+      });
+    }
+    
+    function initQuiz() { 
+        lastAnsweredIndex = -1; 
+        score = 0; 
+        userAnswers = []; 
+        incorrectQuestions = []; 
+        wrongAnswers = []; 
+        questions = [...allQuestions]; 
+        loadProgress(); 
+        shuffle(questions); 
+        current = 0; 
+        loadQuestion(); 
+    }
+    function restartQuiz() { 
+        window.location.reload();
+    }
+    function retryIncorrect() { 
+        if (incorrectQuestions.length === 0) return; 
+        lastAnsweredIndex = -1; 
+        score = 0; 
+        userAnswers = []; 
+        wrongAnswers = []; 
+        questions = [...incorrectQuestions]; 
+        incorrectQuestions = []; 
+        retryMode = true; 
+        scoreBoard.textContent = ""; 
+        progressBar.classList.remove("hidden"); 
+        pdfBtn.classList.add("hidden"); 
+        wrongPdfBtn.classList.add("hidden"); 
+        retryBtn.classList.add("hidden"); 
+        backToStartBtn.classList.add("hidden"); 
+        quizContainer.classList.remove("hidden");
+        header.classList.remove("hidden");
+        current = 0; 
+        loadQuestion(); 
+    }
+    function shuffle(array) { 
+        for (let i = array.length - 1; i > 0; i--) { 
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]]; 
+        } 
+    }
+    function saveProgress() { 
+        const incorrectSentences = incorrectQuestions.map(q => q.sentence); 
+        localStorage.setItem('eikenQuizIncorrect', JSON.stringify(incorrectSentences)); 
+    }
+    function loadProgress() {
+      try {
+        const savedIncorrect = localStorage.getItem('eikenQuizIncorrect');
+        if (savedIncorrect) {
+          const incorrectSentences = JSON.parse(savedIncorrect);
+          if (Array.isArray(incorrectSentences)) {
+            const loadedIncorrect = allQuestions.filter(q => incorrectSentences.includes(q.sentence));
+            if (loadedIncorrect.length > 0) {
+              incorrectQuestions = loadedIncorrect;
+              retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+              retryBtn.classList.remove("hidden");
+            }
+          }
+        }
+      } catch (e) {
+        console.error("保存データの読み込みに失敗しました:", e);
+        localStorage.removeItem('eikenQuizIncorrect');
       }
     }
-
-    function updateProgress() {
-      const bar = document.getElementById("progress-bar");
-      bar.style.width = ((currentIndex/WORDS.length)*100) + "%";
+    function speak(text) { 
+        const u = new SpeechSynthesisUtterance(text); 
+        u.lang = "en-US"; 
+        u.voice = speechSynthesis.getVoices().find(v => v.lang === "en-US" && v.name.includes("Female")) || null; 
+        speechSynthesis.speak(u); 
     }
-
-    function showResult() {
-      document.getElementById("quiz").innerHTML = "";
-      let score = 0;
-      let resultHtml = `<h2>Result</h2><p><b>Name:</b> ${username || "(未入力)"}</p><ol>`;
-      WORDS.forEach((q,i) => {
-        const ans = answers[i] || "未回答";
-        const correct = q.w;
-        const isCorrect = ans === correct;
-        if (isCorrect) score++;
-        resultHtml += `<li style="text-align:left;">
-          <b>英文:</b> ${q.s}<br>
-          <b>Your answer:</b> ${ans} ${isCorrect ? "✅" : "❌"}<br>
-          <b>Correct:</b> ${correct} (${q.jp})<br>
-          <b>和訳:</b> ${q.t}
-        </li><br>`;
-      });
-      resultHtml += `</ol><h3>Score: ${score} / ${WORDS.length}</h3>`;
-      const resDiv = document.getElementById("result");
-      resDiv.innerHTML = resultHtml;
-      resDiv.classList.remove("hidden");
-      document.getElementById("finishBtn").classList.remove("hidden");
+    function downloadPDF() { 
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const username = playerName;
+        const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+        doc.setFontSize(14);
+        doc.text("Quiz Results", 10, 10);
+        if (username) doc.text(`Name: ${username}`, 10, 20);
+        doc.text(`Score: ${finalScoreText}`, 10, 30);
+        let y = 40;
+        userAnswers.forEach((entry, idx) => {
+            if (!entry) return;
+            const linesQ = doc.splitTextToSize(`Q${idx + 1}: ${entry.question}`, 180);
+            doc.text(linesQ, 10, y); y += linesQ.length * 7;
+            const linesU = doc.splitTextToSize(`Your Answer: ${entry.user.join(", ")}`, 180);
+            doc.text(linesU, 10, y); y += linesU.length * 7;
+            const linesC = doc.splitTextToSize(`Correct Answer: ${entry.correct.join(", ")}`, 180);
+            doc.text(linesC, 10, y); y += linesC.length * 7 + 5;
+            if (y > 270) { doc.addPage(); y = 20; }
+        });
+        doc.save("quiz_results.pdf");
     }
-
-    async function finishQuiz() {
+    function downloadWrongPDF() { 
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(14);
+        doc.text("Wrong Vocabulary Results", 10, 10);
+        let y = 20;
+        wrongAnswers.forEach((q, idx) => {
+            const linesQ = doc.splitTextToSize(`${idx + 1}. ${q.sentence}`, 180);
+            doc.text(linesQ, 10, y); y += linesQ.length * 8;
+            const linesA = doc.splitTextToSize(`Answer: ${q.answers.join(", ")}`, 180);
+            doc.text(linesA, 10, y); y += linesA.length * 8 + 5;
+            if (y > 270) { doc.addPage(); y = 20; }
+        });
+        doc.save("Wrong-vocab.pdf");
+    }
+    function downloadHistoryPDF(historyRecord) {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({unit: "mm", format: "a4"});
-
-      username = document.getElementById("username").value.trim();
-
-      let y = 10;
-      doc.setFontSize(14);
-      doc.text("B1 Vocabulary Quiz Result", 10, y);
-      if (username) {
-        doc.text(`Name: ${username}`, 200, y, { align: "right" });
-      }
-      y += 10;
-
-      let score = 0;
-      WORDS.forEach((q,i) => {
-        const ans = answers[i] || "未回答";
-        const correct = q.w;
-        if (ans === correct) score++;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("Quiz Results", 105, 15, null, null, "center");
+      doc.setFontSize(12);
+      doc.text(`Name: ${historyRecord.name}`, 10, 25);
+      doc.text(`Score: ${historyRecord.score}`, 10, 32);
+      doc.text(`Date: ${historyRecord.date}`, 10, 39);
+      let y = 50; 
+      historyRecord.results.forEach((entry, idx) => {
+        if (!entry) return;
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        const isCorrect = entry.user.join(",").toLowerCase() === entry.correct.join(",").toLowerCase();
+        doc.setFontSize(12);
+        doc.text(`Q${idx + 1}: ${entry.question}`, 10, y);
+        y += 7;
+        doc.setFontSize(10);
+        doc.setTextColor(isCorrect ? '#28a745' : '#dc3545'); 
+        doc.text(`Your Answer: ${entry.user.join(", ") || "(no answer)"}`, 15, y);
+        y += 7;
+        if (!isCorrect) {
+          doc.setTextColor('#333333'); 
+          doc.text(`Correct Answer: ${entry.correct.join(", ")}`, 15, y);
+          y += 7;
+        }
+        y += 5; 
       });
-      doc.text(`Score: ${score} / ${WORDS.length}`, 10, y); y+=10;
-
-      doc.setFontSize(10);
-      WORDS.forEach((q,i) => {
-        const ans = answers[i] || "未回答";
-        const correct = q.w;
-        const text = `Q${i+1}: ${q.s}\nYour answer: ${ans}\nCorrect: ${correct}\nJP: ${q.t}`;
-        const split = doc.splitTextToSize(text, 180);
-        doc.text(split, 10, y);
-        y += split.length*5 + 5;
-        if (y > 280) { doc.addPage(); y=10; }
-      });
-
-      const pdfBlob = doc.output("blob");
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "quiz_result.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
+      const fileName = `quiz-results-${historyRecord.date.replace(/[/:\s]/g, '-')}.pdf`;
+      doc.save(fileName);
+    }
+    function downloadAllQuestionsPDF() { 
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text("Eiken Pre-1 Vocabulary List", 10, 15);
+        let y = 25;
+        doc.setFontSize(12);
+        allQuestions.forEach((q, idx) => {
+            if (y > 270) { doc.addPage(); y = 20; }
+            const questionText = `${idx + 1}. ${q.sentence.replace('___', `[ ${q.answers[0]} ]`)}`;
+            const linesQ = doc.splitTextToSize(questionText, 180);
+            doc.text(linesQ, 10, y);
+            y += linesQ.length * 7 + 5;
+        });
+        doc.save("Eiken-Pre-1-Vocab-List.pdf");
     }
 
-    loadQuestion();
+    // --- イベントリスナー ---
+    pdfBtn.onclick = downloadPDF;
+    wrongPdfBtn.onclick = downloadWrongPDF;
+    submitBtn.onclick = checkAnswer;
+    nextBtn.onclick = handleNextClick;
+    prevBtn.onclick = goToPreviousQuestion;
+    showAllBtn.onclick = showAllResults;
+    retryBtn.onclick = retryIncorrect;
+    downloadAllBtn.onclick = downloadAllQuestionsPDF;
+    backToStartBtn.onclick = restartQuiz;
+
+    toggleHistoryBtn.addEventListener('click', () => {
+      if (historyContainer.classList.contains('show')) {
+        historyContainer.classList.remove('show');
+        toggleHistoryBtn.textContent = '履歴を見る';
+      } 
+      else {
+        const inputPassword = prompt('パスワードを入力してください:');
+        if (inputPassword === null) return;
+
+        if (inputPassword === CORRECT_PASSWORD) {
+          historyContainer.classList.add('show');
+          toggleHistoryBtn.textContent = '履歴を閉じる';
+        } else {
+          alert('パスワードが違います。');
+        }
+      }
+    });
+
+    clearHistoryBtn.addEventListener('click', () => {
+      const inputPassword = prompt('履歴を削除するにはパスワードを入力してください:');
+      if (inputPassword === null) {
+        return;
+      }
+      if (inputPassword === CORRECT_PASSWORD) {
+        if (confirm('本当によろしいですか？すべての履歴が完全に削除されます。')) {
+          localStorage.removeItem('quizPlayHistory');
+          displayPlayHistory();
+          alert('履歴を削除しました。');
+        }
+      } else {
+        alert('パスワードが違います。');
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+        if (event.key !== 'Enter') return;
+        if (keyupLock) {
+            keyupLock = false;
+            return;
+        }
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+            return;
+        }
+        if (!nextBtn.classList.contains('hidden')) {
+            handleNextClick();
+        } 
+        else if (!showAllBtn.classList.contains('hidden')) {
+            showAllResults();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      displayPlayHistory();
+    });
+
+    startBtn.addEventListener('click', () => {
+      const name = usernameInput.value.trim();
+      if (name === '') {
+        alert('Please enter your name.');
+        return;
+      }
+      
+      playerName = name;
+      
+      startScreen.classList.add('hidden');
+      quizContainer.classList.remove('hidden');
+      header.classList.remove('hidden');
+      
+      initQuiz();
+    });
   </script>
 </body>
 </html>
