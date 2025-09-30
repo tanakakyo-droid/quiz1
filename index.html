@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -6,29 +7,56 @@
   <title>英検準一級単語クイズ</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/wanakana/wanakana.min.js"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --duo-green: #58cc02;
+      --duo-green-dark: #58a700;
+      --duo-blue: #1cb0f6;
+      --duo-blue-dark: #1899d6;
+      --duo-red: #ea2b2b;
+      --duo-yellow-light: rgba(254, 219, 0, 0.1);
+      --duo-green-light: rgba(88, 204, 2, 0.15);
+      --duo-blue-light: rgba(28, 176, 246, 0.1);
+      --duo-gray-light: #f7f7f7;
+      --duo-gray-border: #e5e5e5;
+      --white: #ffffff;
+      --dark-text: #4c4c4c;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Nunito', sans-serif;
       text-align: center;
       margin: 0;
-      padding: 0; 
-      background: linear-gradient(to bottom, #e0ffe0, #ffffff);
-      color: #333;
+      padding: 0;  
+      color: var(--dark-text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow-x: hidden;
+      
+      /* New Duolingo-ish Background */
+      background-color: var(--duo-gray-light);
+      background-image: 
+        radial-gradient(circle 50vmax at 10% 20%, var(--duo-green-light), transparent 50%),
+        radial-gradient(circle 40vmax at 90% 85%, var(--duo-blue-light), transparent 50%),
+        radial-gradient(circle 35vmax at 50% 50%, var(--duo-yellow-light), transparent 45%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
     }
     header {
-      background: #ffffff;  
-      padding: 10px;
+      background: var(--duo-green);
+      padding: 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border-bottom: 1px solid #ddd;
-      position: relative; 
+      border-bottom: 2px solid var(--duo-gray-border);
+      position: relative;  
       z-index: 10;
       width: 100%;
       box-sizing: border-box;
@@ -36,139 +64,191 @@
     #title {
       flex-grow: 1;
       text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
+      font-size: 32px;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--white);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
     }
 
-    #start-screen {
+    #start-screen, .quiz-container {
       max-width: 800px;
       margin: 40px auto;
       padding: 40px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      background: var(--white);
+      border-radius: 16px;
+      border: 2px solid var(--duo-gray-border);
+      opacity: 0;
     }
+    
+    .animate-in {
+        animation: fadeInUp 0.5s 0.1s ease-out forwards;
+    }
+    .feedback-animate {
+        animation: popIn 0.4s ease-out forwards;
+    }
+
     #start-screen h1 {
       font-size: 32px;
+      font-weight: 900;
       margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #start-screen p {
       font-size: 18px;
+      color: var(--dark-text);
       margin-bottom: 30px;
     }
     #username {
-      padding: 12px;
-      font-size: 20px;
+      padding: 12px 15px;
+      font-size: 18px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
       width: 300px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      border: 2px solid var(--duo-gray-border);
+      border-radius: 12px;
       display: block;
       margin: 0 auto 20px;
+      transition: all 0.2s ease;
+    }
+    #username:focus {
+      outline: none;
+      border-color: var(--duo-blue);
     }
     
     .quiz-container {
-      max-width: 800px;
       width: 100%;
-      min-height: 600px;
-      margin: 20px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      min-height: 550px;
       box-sizing: border-box;
     }
     .input-field {
       margin: 10px;
-      padding: 10px;
-      font-size: 22px;
-      width: 200px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 10px 15px;
+      font-size: 20px;
+      font-weight: 700;
+      width: 250px;
+      border: 2px solid var(--duo-gray-border);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--duo-blue);
     }
     .input-field:disabled {
         background-color: #f2f2f2;
-        color: #555;
+        color: #999;
     }
+    
     .button {
-      margin: 0 5px;
-      padding: 8px 16px;
-      font-size: 16px;
+      position: relative;
+      margin: 10px 5px;
+      padding: 12px 24px;
+      font-size: 18px;
+      font-weight: 900;
+      text-transform: uppercase;
       cursor: pointer;
       border: none;
-      border-radius: 8px;
-      background: #007BFF;
+      border-radius: 16px;
       color: white;
-      transition: background-color 0.2s;
+      transition: top 0.1s ease, background 0.2s ease;
     }
-    .button:hover {
-        background: #0056b3;
+    .button.btn-green {
+      background: var(--duo-green);
+      border-bottom: 4px solid var(--duo-green-dark);
     }
+    .button.btn-blue {
+        background: var(--duo-blue);
+        border-bottom: 4px solid var(--duo-blue-dark);
+    }
+    .button:active {
+        top: 2px;
+        border-bottom-width: 2px;
+    }
+    .button:disabled {
+        background: #ccc;
+        border-bottom: 4px solid #999;
+        cursor: not-allowed;
+        top: 0;
+    }
+    .button:disabled:active {
+        top: 0;
+        border-bottom-width: 4px;
+    }
+
 
     #header-buttons-container {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
     }
-    #header-buttons-container div {
-      margin-bottom: 5px;
-    }
-    #header-buttons-container div:last-child {
-      margin-bottom: 0;
-    }
+    #header-buttons-container div { margin-bottom: 5px; }
+    #header-buttons-container div:last-child { margin-bottom: 0; }
+
+    #toggleHistoryBtn { display: none; }
 
     .circle-button {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
       border-radius: 50%;
-      border: none;
       margin-left: 8px;
-      cursor: pointer;
-      background-color: #007BFF;
-      color: white;
-      font-size: 14px;
-      transition: background-color 0.2s;
+      font-size: 16px;
+      border-bottom: 2px solid var(--duo-green-dark);
     }
-    .circle-button:hover {
-        background: #0056b3;
+     .circle-button:active {
+        top: 1px;
+        border-bottom-width: 1px;
     }
     .hidden { display: none; }
-    #question { font-size: 24px; margin-bottom: 20px; }
+    #question { 
+      font-size: 28px; 
+      font-weight: 900; 
+      margin-bottom: 15px;
+    }
     #question .jp-translation {
       font-size: 18px;
-      color: #555;
+      color: var(--dark-text);
       margin-top: 8px;
+      font-weight: 400;
     }
-    #translation { font-size: 20px; margin-top: 15px; }
+    #translation { font-size: 18px; margin-top: 20px; line-height: 1.6; }
     #input-wrapper {
       position: relative;
       min-height: 60px;
+      margin: 20px 0;
     }
     #feedback {
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(120px, -50%);
-      width: 160px;
+      transform: translate(160px, -50%);
+      width: 200px;
       text-align: left;
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 24px;
+      font-weight: 900;
+      opacity: 0;
     }
-    #feedback.correct { color: #28a745; }
-    #feedback.incorrect { color: #dc3545; }
+    #feedback.correct { color: var(--duo-green); }
+    #feedback.incorrect { color: var(--duo-red); }
+
     .progress-bar {
-      height: 25px;
-      background-color: #e9ecef;
+      height: 20px;
+      background-color: var(--duo-gray-border);
       border-radius: 10px;
       margin-top: 20px;
       overflow: hidden;
+      padding: 4px;
     }
     .progress {
       height: 100%;
       width: 0%;
-      background-color: #007BFF;
-      border-radius: 10px;
+      background: var(--duo-green);
+      border-radius: 8px;
       transition: width 0.4s ease-in-out;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
     }
 
     #history-container {
@@ -178,46 +258,46 @@
       width: 100%;
       max-height: 250px;
       overflow-y: auto;
-      background-color: #f0f0f0;
-      border-top: 2px solid #ccc;
+      background-color: var(--white);
+      border-top: 2px solid var(--duo-gray-border);
       padding: 10px;
       box-sizing: border-box;
       text-align: left;
-      transform: translateY(100%); 
-      transition: transform 0.3s ease-in-out; 
+      transform: translateY(100%);  
+      transition: transform 0.3s ease-in-out;  
       z-index: 100;
     }
-    #history-container.show {
-      transform: translateY(0);
-    }
-    
+    #history-container.show { transform: translateY(0); }
     #history-container h2 {
       margin-top: 0;
       margin-bottom: 10px;
       text-align: center;
-      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
     }
-    #history-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+    #history-list { list-style: none; padding: 0; margin: 0; }
     #history-list li {
-      background-color: #fff;
-      padding: 8px;
-      border-bottom: 1px solid #ddd;
+      background-color: var(--white);
+      padding: 10px;
+      border-bottom: 1px solid var(--duo-gray-border);
       font-size: 14px;
-      cursor: pointer; 
+      cursor: pointer;  
       transition: background-color 0.2s;
     }
-    #history-list li:hover {
-      background-color: #e9ecef; 
-    }
+    #history-list li:hover { background-color: var(--duo-gray-light); }
 
     #clearHistoryBtn {
-      display: none;
+      font-size: 12px;
+      padding: 4px 8px;
+      background-color: var(--duo-red);
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 15px;
     }
-
     #historySearchInput {
       width: 100%;
       padding: 8px;
@@ -226,88 +306,76 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        padding: 10px 5px;
-      }
-      #title {
-        font-size: 20px;
-        margin-bottom: 10px;
-      }
-      #header-buttons-container {
-        align-items: center;
-      }
-      .button {
-        padding: 10px 12px;
-        font-size: 14px;
-      }
-
-      #start-screen, .quiz-container {
-        width: 95%;
-        margin: 10px auto;
-        padding: 15px;
-        min-height: 0;
-      }
-      #start-screen h1 {
-        font-size: 24px;
-      }
-
-      #username, .input-field {
-        width: 90%;
-        box-sizing: border-box;
-        font-size: 18px;
-      }
-
-      #question {
-        font-size: 18px;
-      }
-      #feedback {
-        position: static;
-        transform: none;
-        text-align: center;
-        width: 100%;
-        margin-top: 10px;
-        font-size: 18px;
-      }
-      #input-wrapper {
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      #history-container {
-        max-height: 40%;
-      }
+    #closeHistoryBtn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    #closeHistoryBtn:hover { color: #000; }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0% { transform: translate(160px, -50%) scale(0.8); opacity: 0; }
+      80% { transform: translate(160px, -50%) scale(1.1); opacity: 1; }
+      100% { transform: translate(160px, -50%) scale(1); opacity: 1; }
     }
 
+    @media (max-width: 768px) {
+      body { padding-bottom: 10px; }
+      header { flex-direction: column; padding: 10px 5px; }
+      #title {
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
+      #header-buttons-container { align-items: center; }
+      .button { padding: 10px 12px; font-size: 14px; }
+      #start-screen, .quiz-container { width: 95%; margin: 15px auto; padding: 20px; min-height: 0; }
+      #start-screen h1 { font-size: 24px; }
+      #username, .input-field { width: 90%; box-sizing: border-box; font-size: 18px; }
+      #question { font-size: 22px; }
+      #feedback { position: static; transform: none; text-align: center; width: 100%; margin-top: 10px; font-size: 20px; }
+      @keyframes popIn {
+          0% { transform: scale(0.8); opacity: 0; }
+          80% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+      }
+      #input-wrapper { min-height: 0; display: flex; flex-direction: column; align-items: center; }
+      #history-container { max-height: 40%; }
+    }
   </style>
 </head>
 <body>
   <header class="hidden">
-    <div id="title">英検準一級単語クイズ</div>
+    <div id="title">Eiken Pre-1 Vocabulary Quiz</div>
     <div id="header-buttons-container">
       <div id="top-row-buttons">
-        <button class="button" id="toggleHistoryBtn">履歴を見る</button>
-        <button class="button hidden" id="backToStartBtn">最初に戻る</button>
-        <button class="button hidden" id="retryBtn">間違えた問題に再挑戦</button>
-      </div>
+        <button class="button btn-blue" id="toggleHistoryBtn">履歴</button> <button class="button btn-blue hidden" id="backToStartBtn">最初に戻る</button> <button class="button btn-blue hidden" id="retryBtn">間違えた問題に再挑戦</button> </div>
       <div id="bottom-row-buttons">
-        <button class="button hidden" id="pdfBtn">Download PDF</button>
-        <button class="button hidden" id="wrongPdfBtn">Download Wrong-vocab</button>
-        <button class="button hidden" id="downloadAllBtn">全単語リストをPDF化</button>
-      </div>
+        <button class="button btn-blue hidden" id="pdfBtn">PDFをダウンロード</button> <button class="button btn-blue hidden" id="wrongPdfBtn">間違えた単語をPDF化</button> <button class="button btn-blue hidden" id="downloadAllBtn">全単語リストをPDF化</button> </div>
     </div>
   </header>
 
-  <div id="start-screen">
-    <h1>英検準一級単語クイズ</h1>
+  <div id="start-screen" class="animate-in">
+    <h1>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#58cc02" style="margin-right: 10px;">
+        <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
+      </svg>
+      英検準一級単語クイズ
+    </h1>
     <p>Please enter your name to start the quiz.</p>
-    <input type="text" id="username" placeholder="Enter your name">
-    <button class="button" id="startBtn">Start Quiz</button>
-  </div>
+    <input type="text" id="username" placeholder="名前を入力">
+    <button class="button btn-green" id="startBtn" disabled>クイズ開始</button> </div>
   
   <div class="quiz-container hidden">
     <div id="question"></div>
@@ -315,11 +383,7 @@
       <div id="inputs"></div>
       <div id="feedback"></div>
     </div>
-    <button class="button" id="submitBtn">Submit</button>
-    <button class="button hidden" id="prevBtn">前の問題へ</button>
-    <button class="button hidden" id="nextBtn">Next</button>
-    <button class="button hidden" id="showAllBtn">Show All Results</button>
-    <div id="translation"></div>
+    <button class="button btn-green" id="submitBtn">決定</button> <button class="button btn-blue hidden" id="prevBtn">前へ</button> <button class="button btn-green hidden" id="nextBtn">次へ</button> <button class="button btn-blue hidden" id="showAllBtn">結果をすべて表示</button> <div id="translation"></div>
     <div class="progress-bar" id="progressBar">
       <div class="progress" id="progress"></div>
     </div>
@@ -327,73 +391,32 @@
   </div>
 
   <div id="history-container">
-    <h2 id="historyTitle">プレイ履歴<button id="clearHistoryBtn">全消去</button></h2>
-    <input type="search" id="historySearchInput" placeholder="名前や日付で履歴を検索...">
+    <button id="closeHistoryBtn" title="閉じる">&times;</button> <h2>プレイ履歴<button id="clearHistoryBtn">全て消去</button></h2> <input type="search" id="historySearchInput" placeholder="名前や日付で履歴を検索...">
     <ul id="history-list"></ul>
   </div>
 
   <script>
     const allQuestions = [
-      { "sentence": "Patients are ___ to infection just after surgery.","answers": [ "vulnerable" ],"translation": "Patients are vulnerable to infection just after surgery.","jpTranslation": "患者は手術の直後、感染症にかかりやすくなる。","blanksTranslation": [ "傷つきやすい、かかりやすい" ] },
-      { "sentence": "Make sure to ___ all the warning signs.","answers": [ "heed" ],"translation": "Make sure to heed all the warning signs.","jpTranslation": "すべての警戒標識に気をつけるようにしてください。","blanksTranslation": [ "〜に気をつける、を心に留める" ] },
-      { "sentence": "A ___ captured the arrest on video.","answers": [ "bystander" ],"translation": "A bystander captured the arrest on video.","jpTranslation": "その場に居合わせた人が逮捕の様子を動画に収めた。","blanksTranslation": [ "傍観者、見物人" ] },
+      { "sentence": "Patients are ___ to infection just after surgery.","answers": [ "vulnerable" ],"translation": "Patients are vulnerable to infection just after surgery.","jpTranslation": "患者は手術の直後、感染症にかかりやすくなる。","blanksTranslation": [ "かかりやすくなる" ] },
+      { "sentence": "Make sure to ___ all the warning signs.","answers": [ "heed" ],"translation": "Make sure to heed all the warning signs.","jpTranslation": "すべての警戒標識に気をつけるようにしてください。","blanksTranslation": [ "気をつける" ] },
+      { "sentence": "A ___ captured the arrest on video.","answers": [ "bystander" ],"translation": "A bystander captured the arrest on video.","jpTranslation": "その場に居合わせた人が逮捕の様子を動画に収めた。","blanksTranslation": [ "その場に居合わせた人" ] },
       { "sentence": "The bridge eases ___ in the area.","answers": [ "congestion" ],"translation": "The bridge eases congestion in the area.","jpTranslation": "その橋は地域の混雑を緩和している。","blanksTranslation": [ "混雑" ] },
-      { "sentence": "She ___ all her appliances and replaced them with new ones.","answers": [ "discarded" ],"translation": "She discarded all her appliances and replaced them with new ones.","jpTranslation": "彼女はすべての電化製品を捨て、新しいものに買い換えた。","blanksTranslation": [ "〜を捨てる、処分する" ] },
-      { "sentence": "The ___ was completely out of control and spread quickly.","answers": [ "blaze" ],"translation": "The blaze was completely out of control and spread quickly.","jpTranslation": "炎は完全に制御不能で、あっという間に燃え広がった。","blanksTranslation": [ "炎、火炎" ] },
-      { "sentence": "He is a little ___ with a paintbrush.","answers": [ "clumsy" ],"translation": "He is a little clumsy with a paintbrush.","jpTranslation": "彼は絵筆を使うのが少し不器用だ。","blanksTranslation": [ "不器用な、ぎこちない" ] },
-      { "sentence": "We must ___ major sources of pollution quickly.","answers": [ "eliminate" ],"translation": "We must eliminate major sources of pollution quickly.","jpTranslation": "私たちは主要な汚染源を早急に除去しなければならない。","blanksTranslation": [ "〜を取り除く、外す" ] },
-      { "sentence": "The politician ___ his involvement in the scandal.","answers": [ "acknowledged" ],"translation": "The politician acknowledged his involvement in the scandal.","jpTranslation": "その政治家はスキャンダルへの関与を認めた。","blanksTranslation": [ "〜を認める" ] },
+      { "sentence": "She ___ all her appliances and replaced them with new ones.","answers": [ "discarded" ],"translation": "She discarded all her appliances and replaced them with new ones.","jpTranslation": "彼女はすべての電化製品を捨て、新しいものに買い換えた。","blanksTranslation": [ "捨て" ] },
+      { "sentence": "The ___ was completely out of control and spread quickly.","answers": [ "blaze" ],"translation": "The blaze was completely out of control and spread quickly.","jpTranslation": "炎は完全に制御不能で、あっという間に燃え広がった。","blanksTranslation": [ "炎" ] },
+      { "sentence": "He is a little ___ with a paintbrush.","answers": [ "clumsy" ],"translation": "He is a little clumsy with a paintbrush.","jpTranslation": "彼は絵筆を使うのが少し不器用だ。","blanksTranslation": [ "不器用だ" ] },
+      { "sentence": "We must ___ major sources of pollution quickly.","answers": [ "eliminate" ],"translation": "We must eliminate major sources of pollution quickly.","jpTranslation": "私たちは主要な汚染源を早急に除去しなければならない。","blanksTranslation": [ "除去しな" ] },
+      { "sentence": "The politician ___ his involvement in the scandal.","answers": [ "acknowledged" ],"translation": "The politician acknowledged his involvement in the scandal.","jpTranslation": "その政治家はスキャンダルへの関与を認めた。","blanksTranslation": [ "認めた" ] },
       { "sentence": "\"Not all mushrooms are ___, so you have to be careful.\"","answers": [ "edible" ],"translation": "\"Not all mushrooms are edible, so you have to be careful.\"","jpTranslation": "すべてのキノコが食べられるわけではないので、注意が必要だ。","blanksTranslation": [ "食べられる" ] },
-      { "sentence": "Our people have ___ the land here for centuries.","answers": [ "cultivated" ],"translation": "Our people have cultivated the land here for centuries.","jpTranslation": "私たち一族は何世紀にもわたってこの土地を耕してきた。","blanksTranslation": [ "(土地)を耕す" ] },
-      { "sentence": "She had to pay a fine because her payment was ___.","answers": [ "overdue" ],"translation": "She had to pay a fine because her payment was overdue.","jpTranslation": "支払いの期間が過ぎてしまったため、彼女は罰金を支払わなければならなかった。","blanksTranslation": [ "期限が過ぎて" ] },
-      { "sentence": "The university's ___ increases almost every year.","answers": [ "enrollment" ],"translation": "The university's enrollment increases almost every year.","jpTranslation": "その大学の登録者数はほとんど毎年増えている。","blanksTranslation": [ "登録、入学" ] },
-      { "sentence": "He ___ the help of friends when setting up his business.","answers": [ "enlisted" ],"translation": "He enlisted the help of friends when setting up his business.","jpTranslation": "彼は会社を立ち上げるときに友人の援助を得た。","blanksTranslation": [ "(援助など)を得る、求める" ] },
+      { "sentence": "Our people have ___ the land here for centuries.","answers": [ "cultivated" ],"translation": "Our people have cultivated the land here for centuries.","jpTranslation": "私たち一族は何世紀にもわたってこの土地を耕してきた。","blanksTranslation": [ "耕して" ] },
+      { "sentence": "She had to pay a fine because her payment was ___.","answers": [ "overdue" ],"translation": "She had to pay a fine because her payment was overdue.","jpTranslation": "支払いの期間が過ぎてしまったため、彼女は罰金を支払わなければならなかった。","blanksTranslation": [ "期間が過ぎて" ] },
+      { "sentence": "The university's ___ increases almost every year.","answers": [ "enrollment" ],"translation": "The university's enrollment increases almost every year.","jpTranslation": "その大学の登録者数はほとんど毎年増えている。","blanksTranslation": [ "登録者数" ] },
+      { "sentence": "He ___ the help of friends when setting up his business.","answers": [ "enlisted" ],"translation": "He enlisted the help of friends when setting up his business.","jpTranslation": "彼は会社を立ち上げるときに友人の援助を得た。","blanksTranslation": [ "得た" ] },
       { "sentence": "___ reigned in the country during the civil war.","answers": [ "Anarchy" ],"translation": "Anarchy reigned in the country during the civil war.","jpTranslation": "内戦中、国は無政府状態になった。","blanksTranslation": [ "無政府状態" ] },
-      { "sentence": "She was ___ to give an answer.","answers": [ "reluctant" ],"translation": "She was reluctant to give an answer.","jpTranslation": "彼女は返事をしたがらなかった。","blanksTranslation": [ "気乗りがしない、しぶしぶの" ] },
+      { "sentence": "She was ___ to give an answer.","answers": [ "reluctant" ],"translation": "She was reluctant to give an answer.","jpTranslation": "彼女は返事をしたがらなかった。","blanksTranslation": [ "したがらなかった" ] },
       { "sentence": "Our company does not offer a service to ship ___ items.","answers": [ "fragile" ],"translation": "Our company does not offer a service to ship fragile items.","jpTranslation": "当社では、壊れやすいものの配送サービスは行っておりません。","blanksTranslation": [ "壊れやすい" ] },
-      { "sentence": "Your work performance will be ___ twice per year.","answers": [ "evaluated" ],"translation": "Your work performance will be evaluated twice per year.","jpTranslation": "業績は、年に2回評価されます。","blanksTranslation": [ "〜を評価する" ] },
-      { "sentence": "We will ___ the class at 3:00 p.m.","answers": [ "resume" ],"translation": "We will resume the class at 3:00 p.m.","jpTranslation": "午後3時に授業を再開します。","blanksTranslation": [ "〜を再開する" ] },
-      { "sentence": "She was ___ after a day of walking in the city.","answers": [ "weary" ],"translation": "She was weary after a day of walking in the city.","jpTranslation": "彼女は一日中街を歩いて疲れきっていた。","blanksTranslation": [ "ひどく疲れた" ] },
-      { "sentence": "Her grandparents took ___ of her after the accident.","answers": [ "custody" ],"translation": "Her grandparents took custody of her after the accident.","jpTranslation": "事故のあと、祖父母が彼女を保護した。","blanksTranslation": [ "保護、親権" ] },
-      { "sentence": "The two parties formed a ___ government.","answers": [ "coalition" ],"translation": "The two parties formed a coalition government.","jpTranslation": "その2つの政党は連立政権を樹立した。","blanksTranslation": [ "連立、連合" ] },
-      { "sentence": "\"That area has many large, ___ forests.\"","answers": [ "tranquil" ],"translation": "\"That area has many large, tranquil forests.\"","jpTranslation": "その地域には、大きくて静かな森がたくさんある。","blanksTranslation": [ "静かな、穏やかな" ] },
-      { "sentence": "It is the job of the police to ___ the law.","answers": [ "enforce" ],"translation": "It is the job of the police to enforce the law.","jpTranslation": "法律を遵守させるのは警察の仕事だ。","blanksTranslation": [ "(法律など)を守らせる、施行する" ] },
-      { "sentence": "The woman ___ herself as a man to avoid police.","answers": [ "disguised" ],"translation": "The woman disguised herself as a man to avoid police.","jpTranslation": "その女性は警察の目を避けるために男性に変装した。","blanksTranslation": [ "〜を変装させる、偽装する" ] },
-      { "sentence": "The school plans to use the ___ of funds to update the gymnasium.","answers": [ "surplus" ],"translation": "The school plans to use the surplus of funds to update the gymnasium.","jpTranslation": "その学校は、余剰金を使って体育館を改修する予定だ。","blanksTranslation": [ "余剰、余剰分" ] },
-      { "sentence": "The activists are looking for more people to sign their ___.","answers": [ "petition" ],"translation": "The activists are looking for more people to sign their petition.","jpTranslation": "活動家たちは嘆願書に署名してくれるさらに多くの人を探している。","blanksTranslation": [ "嘆願書" ] },
-      { "sentence": "He is a ___ late sleeper and is often late to work.","answers": [ "habitual" ],"translation": "He is a habitual late sleeper and is often late to work.","jpTranslation": "彼は寝坊の常習犯で、よく仕事に遅刻する。","blanksTranslation": [ "常習的な、習慣的な" ] },
-      { "sentence": "\"The building is new, so there are still several ___ apartments.\"","answers": [ "vacant" ],"translation": "\"The building is new, so there are still several vacant apartments.\"","jpTranslation": "そのビルは新しいので、まだいくつか空き部屋がある。","blanksTranslation": [ "空いている、使われていない" ] },
-      { "sentence": "Critics have praised the author's ___ use of poetic language.","answers": [ "daring" ],"translation": "Critics have praised the author's daring use of poetic language.","jpTranslation": "批評家たちは、その著者の大胆な詩的言葉遣いを称賛している。","blanksTranslation": [ "大胆な" ] },
-      { "sentence": "The company's business activities are ___ in Southeast Asia.","answers": [ "thriving" ],"translation": "The company's business activities are thriving in Southeast Asia.","jpTranslation": "その会社の事業活動は東南アジアで成功している。","blanksTranslation": [ "繁栄する、成功する" ] },
-      { "sentence": "She has a large purse divided into several ___.","answers": [ "compartments" ],"translation": "She has a large purse divided into several compartments.","jpTranslation": "彼女はいくつかの仕切りに分かれた大きなハンドバッグを持っている。","blanksTranslation": [ "仕切られた部分" ] },
-      { "sentence": "The growth of the economy continues to ___ rapidly.","answers": [ "accelerate" ],"translation": "The growth of the economy continues to accelerate rapidly.","jpTranslation": "経済成長は急速に加速し続けている。","blanksTranslation": [ "加速する" ] },
-      { "sentence": "Most people in this neighborhood are ___ of Japanese immigrants.","answers": [ "descendants" ],"translation": "Most people in this neighborhood are descendants of Japanese immigrants.","jpTranslation": "この界隈のほとんどの人は日本からの移民の子孫だ。","blanksTranslation": [ "子孫、末裔" ] },
-      { "sentence": "The old barn ___ until there was nothing left.","answers": [ "decayed" ],"translation": "The old barn decayed until there was nothing left.","jpTranslation": "古い納屋は朽ち果てて、最後には何も残らなかった。","blanksTranslation": [ "腐る、朽ちる" ] },
-      { "sentence": "Our smartphone designs are constantly being ___ and improved.","answers": [ "refined" ],"translation": "Our smartphone designs are constantly being refined and improved.","jpTranslation": "当社のスマートフォンのデザインは、絶えず洗練と改良を続けております。","blanksTranslation": [ "〜を洗練する、改良する" ] },
-      { "sentence": "The bug bites on her legs ___ and turned red.","answers": [ "swelled" ],"translation": "The bug bites on her legs swelled and turned red.","jpTranslation": "彼女の両脚の虫刺されは、腫れて赤くなった。","blanksTranslation": [ "腫れる" ] },
-      { "sentence": "A large ___ of the population does not have access to clean water.","answers": [ "segment" ],"translation": "A large segment of the population does not have access to clean water.","jpTranslation": "人口の大部分はきれいな水を手に入れることができない。","blanksTranslation": [ "部分、区分" ] },
-      { "sentence": "Several politicians have been arrested for taking ___.","answers": [ "bribes" ],"translation": "Several politicians have been arrested for taking bribes.","jpTranslation": "賄賂を受け取ったとして何人かの政治家が逮捕された。","blanksTranslation": [ "賄賂" ] },
-      { "sentence": "She has been ___ with comic books since she was young.","answers": [ "obsessed" ],"translation": "She has been obsessed with comic books since she was young.","jpTranslation": "彼女は幼いころからずっと漫画に夢中だ。","blanksTranslation": [ "心を奪われた、取りつかれた" ] },
-      { "sentence": "The CEO ___ his promise to avoid company-wide layoffs.","answers": [ "upheld" ],"translation": "The CEO upheld his promise to avoid company-wide layoffs.","jpTranslation": "CEOは、全社的な解雇を回避するという約束を守った。","blanksTranslation": [ "(公約など)を守る" ] },
-      { "sentence": "The organization is trying to ___ the government.","answers": [ "overthrow" ],"translation": "The organization is trying to overthrow the government.","jpTranslation": "その組織は政府を転覆させようとしている。","blanksTranslation": [ "(政府など)を転覆させる" ] },
-      { "sentence": "He let his wife decide the ___ for their trip to Europe.","answers": [ "itinerary" ],"translation": "He let his wife decide the itinerary for their trip to Europe.","jpTranslation": "彼はヨーロッパ旅行の計画を妻に任せた。","blanksTranslation": [ "旅程(表)、旅行計画" ] },
-      { "sentence": "We heard a ___ noise coming from the basement.","answers": [ "faint" ],"translation": "We heard a faint noise coming from the basement.","jpTranslation": "地下室からかすかな物音が聞こえた。","blanksTranslation": [ "かすかな" ] },
-      { "sentence": "She left ___ instructions regarding how to take care of her dogs.","answers": [ "explicit" ],"translation": "She left explicit instructions regarding how to take care of her dogs.","jpTranslation": "彼女は犬たちの世話の仕方について明確な指示を残した。","blanksTranslation": [ "明白な、あからさまな" ] },
-      { "sentence": "His grandmother was always ___ when he was a child.","answers": [ "lenient" ],"translation": "His grandmother was always lenient when he was a child.","jpTranslation": "彼が子どものころ、彼の祖母はいつも甘かった。","blanksTranslation": [ "寛大な、甘い" ] },
-      { "sentence": "Have you ever ___ quitting and finding a new job?","answers": [ "contemplated" ],"translation": "Have you ever contemplated quitting and finding a new job?","jpTranslation": "仕事を辞めて新しい仕事を探すことを考えたことはありますか。","blanksTranslation": [ "〜を熟考する" ] },
-      { "sentence": "You shall be ___ innocent unless you are proven guilty.","answers": [ "presumed" ],"translation": "You shall be presumed innocent unless you are proven guilty.","jpTranslation": "有罪と証明されない限り、あなたは無罪と見なされます。","blanksTranslation": [ "〜と推定する、見なす" ] },
-      { "sentence": "___ bags cannot be used as carry-on luggage.","answers": [ "Bulky" ],"translation": "Bulky bags cannot be used as carry-on luggage.","jpTranslation": "かさばるバッグは機内持ち込み手荷物としては使用できない。","blanksTranslation": [ "かさばった、大きくて扱いにくい" ] },
-      { "sentence": "The candidate ___ the election following the court's decision.","answers": [ "conceded" ],"translation": "The candidate conceded the election following the court's decision.","jpTranslation": "その候補者は、裁判所の決定に従って選挙の敗北を認めた。","blanksTranslation": [ "(敗北)を認める" ] },
-      { "sentence": "She ___ her shoulders when her teacher asked her the question.","answers": [ "shrugged" ],"translation": "She shrugged her shoulders when her teacher asked her the question.","jpTranslation": "先生に質問されて、彼女は肩をすくめた。","blanksTranslation": [ "(肩)をすくめる" ] },
-      { "sentence": "Investigators worked to ___ the crime scene.","answers": [ "reconstruct" ],"translation": "Investigators worked to reconstruct the crime scene.","jpTranslation": "捜査官たちは犯行現場を再現しようと取り組んだ。","blanksTranslation": [ "〜を再現する" ] },
-      { "sentence": "There were many large ___ surrounding the demolition site.","answers": [ "barricades" ],"translation": "There were many large barricades surrounding the demolition site.","jpTranslation": "解体現場を取り囲む大きなバリケードがたくさんあった。","blanksTranslation": [ "バリケード、障害物" ] },
-      { "sentence": "The couple went to an ___ dinner with the CEO.","answers": [ "extravagant" ],"translation": "The couple went to an extravagant dinner with the CEO.","jpTranslation": "その夫婦はCEOと豪華なディナーに行った。","blanksTranslation": [ "浪費する、ぜいたくな" ] },
-      { "sentence": "The business partners worked hard to ___ their differences.","answers": [ "reconcile" ],"translation": "The business partners worked hard to reconcile their differences.","jpTranslation": "ビジネスパートナーたちは相違点を調整するために努力した。","blanksTranslation": [ "〜を調和させる、調整する" ] },
-      { "sentence": "Monthly members are ___ from paying the admission fee.","answers": [ "exempt" ],"translation": "Monthly members are exempt from paying the admission fee.","jpTranslation": "月会員は入場料を免除されます。","blanksTranslation": [ "免除された" ] },
-      { "sentence": "She takes a ___ around the park every morning.","answers": [ "stroll" ],"translation": "She takes a stroll around the park every morning.","jpTranslation": "彼女は毎朝公園をのんびり散歩する。","blanksTranslation": [ "散策、そぞろ歩き" ] },
-      { "sentence": "They are ___ for being inflexible in their opinions.","answers": [ "notorious" ],"translation": "They are notorious for being inflexible in their opinions.","jpTranslation": "彼らは自分の意見を曲げないことで悪名高い。","blanksTranslation": [ "悪名高い、よく知られた" ] },
-      { "sentence": "We could ___ the quality of sound produced by our headphones.","answers": [ "enhance" ],"translation": "We could enhance the quality of sound produced by our headphones.","jpTranslation": "私たちは、ヘッドフォンから出る音の質を高めることができた。","blanksTranslation": [ "〜を高める、向上させる" ] },
-      { "sentence": "This mark ___ that the food was grown organically.","answers": [ "signifies" ],"translation": "This mark signifies that the food was grown organically.","jpTranslation": "このマークは食品が有機農法で生産されたことを示している。","blanksTranslation": [ "〜を示す、知らせる" ] }
+      { "sentence": "Your work performance will be ___ twice per year.","answers": [ "evaluated" ],"translation": "Your work performance will be evaluated twice per year.","jpTranslation": "業績は、年に2回評価されます。","blanksTranslation": [ "評価されます" ] },
+      { "sentence": "We will ___ the class at 3:00 p.m.","answers": [ "resume" ],"translation": "We will resume the class at 3:00 p.m.","jpTranslation": "午後3時に授業を再開します。","blanksTranslation": [ "再開します" ] },
+      { "sentence": "She was ___ after a day of walking in the city.","answers": [ "weary" ],"translation": "She was weary after a day of walking in the city.","jpTranslation": "彼女は一日中街を歩いて疲れきっていた。","blanksTranslation": [ "疲れきっていた" ] }
     ];
     
     const CORRECT_PASSWORD = '1234';
@@ -413,6 +436,8 @@
     const startBtn = document.getElementById("startBtn");
     const usernameInput = document.getElementById("username");
     const quizContainer = document.querySelector(".quiz-container");
+    const mainTitle = document.getElementById("title");
+    const startScreenTitle = document.querySelector("#start-screen h1"); 
     const qEl = document.getElementById("question");
     const inputEl = document.getElementById("inputs");
     const feedbackEl = document.getElementById("feedback");
@@ -433,19 +458,26 @@
     const historyContainer = document.getElementById("history-container");
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
     const historySearchInput = document.getElementById("historySearchInput");
-    const historyTitle = document.getElementById("historyTitle");
-
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    
     function loadQuestion() {
-      retryBtn.classList.add("hidden"); 
+      quizContainer.classList.remove('animate-in');
+      void quizContainer.offsetWidth;
+      quizContainer.classList.add('animate-in');
+
+      retryBtn.classList.add("hidden");  
       prevBtn.classList.add("hidden");
       nextBtn.classList.add("hidden");
       showAllBtn.classList.add("hidden");
       qEl.style.marginBottom = "";
       translationEl.style.marginTop = "";
+      
       const q = questions[current];
+      
       qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
       inputEl.innerHTML = "";
       feedbackEl.textContent = "";
+      feedbackEl.classList.remove('feedback-animate');
       translationEl.textContent = "";
       q.answers.forEach((_, i) => {
         const inp = document.createElement("input");
@@ -458,13 +490,13 @@
       inputs[0].focus();
       inputs.forEach((inp, idx) => {
         inp.addEventListener("keydown", e => {
-          if (e.key === "Enter") { 
-            e.preventDefault(); 
+          if (e.key === "Enter") {  
+            e.preventDefault();  
             if (idx < inputs.length - 1) {
-                inputs[idx + 1].focus();
+              inputs[idx + 1].focus();
             } else {
-                keyupLock = true;
-                checkAnswer();
+              keyupLock = true;
+              checkAnswer();
             }
           }
         });
@@ -521,7 +553,8 @@
         current = index;
         const q = questions[index];
         const recordedEntry = userAnswers[index];
-        qEl.innerHTML = `<div>Q${index + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+        
+        qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
         inputEl.innerHTML = "";
         q.answers.forEach((_, i) => {
             const inp = document.createElement("input");
@@ -537,29 +570,31 @@
             const userAnswerText = recordedEntry.user[i] || "";
             const correctAnswerText = q.answers[i] || "";
             const wasThisPartCorrect = userAnswerText.toLowerCase() === correctAnswerText.toLowerCase();
-            inp.style.borderColor = wasThisPartCorrect ? '#28a745' : '#dc3545';
+            inp.style.borderColor = wasThisPartCorrect ? 'var(--duo-green)' : 'var(--duo-red)';
             inp.style.borderWidth = '2px';
         });
         submitBtn.classList.add("hidden");
         const userWasCorrect = recordedEntry.user.join(",").toLowerCase() === recordedEntry.correct.join(",").toLowerCase();
+        
         feedbackEl.className = "";
+        feedbackEl.classList.add('feedback-animate');
+
         if (userWasCorrect) {
-            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.textContent = "✅ 正解！";
             feedbackEl.classList.add("correct");
         } else {
-            feedbackEl.textContent = "❌ Incorrect!";
+            feedbackEl.textContent = "❌ 不正解";
             feedbackEl.classList.add("incorrect");
         }
         let highlighted = q.translation;
         q.answers.forEach(ans => {
             const regex = new RegExp(`\\b${ans}\\b`, "gi");
-            highlighted = highlighted.replace(regex, `<span style="color:red; font-weight:bold;">${ans}</span>`);
+            highlighted = highlighted.replace(regex, `<span style="font-weight: 900; color: red;">${ans}</span>`);
         });
         translationEl.innerHTML = `
-            <p><b>英文:</b> ${highlighted} <button class="circle-button" onclick="speak('${q.translation}')">🔊</button></p>
-            <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="circle-button" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
-            <p><b>和訳:</b> ${q.jpTranslation}</p>
-            <p><b>答えの和訳:</b> ${q.blanksTranslation.join(", ")}</p>
+            <p><b>英文:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
+            <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="button circle-button btn-green" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
+            <p><b>日本語訳:</b> ${q.blanksTranslation.join(", ")}</p>
         `;
         const isLastQuestion = index === questions.length - 1;
         prevBtn.classList.toggle("hidden", index <= 0);
@@ -587,15 +622,15 @@
 
         savePlayHistory(username, finalScoreText);
         displayPlayHistory();
-        scoreBoard.textContent = `Your score: ${finalScoreText}`;
+        scoreBoard.textContent = `スコア: ${finalScoreText}`;
         
-        qEl.textContent = "All Results";
+        qEl.textContent = "全結果";
         inputEl.innerHTML = "";
         feedbackEl.textContent = "";
         translationEl.innerHTML = "";
         qEl.style.marginBottom = "0";
         translationEl.style.marginTop = "5px";
-        translationEl.innerHTML = `<p style="margin: 0;"><b>Name:</b> ${username}</p><p><b>Score:</b> ${finalScoreText}</p>`;
+        translationEl.innerHTML = `<p style="margin: 0;"><b>名前:</b> ${username}</p><p><b>スコア:</b> ${finalScoreText}</p>`;
         
         userAnswers.forEach((entry, idx) => {
             if (!entry) return;
@@ -604,11 +639,12 @@
             let highlightedSentence = originalQuestion.translation;
             originalQuestion.answers.forEach(ans => {
                 const regex = new RegExp(`\\b(${ans})\\b`, 'gi');
-                highlightedSentence = highlightedSentence.replace(regex, `<span style="color: red; font-weight: bold;">$1</span>`);
+                highlightedSentence = highlightedSentence.replace(regex, `<span style="font-weight: 900; color: red;">$1</span>`);
             });
+
             const userAnswersGiven = entry.user.join(", ");
             const isAnswerCorrect = userAnswersGiven.toLowerCase() === entry.correct.join(", ").toLowerCase();
-            let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>Your Answer:</b> ${userAnswersGiven} <span style="color: #28a745;">✅</span></p>` : `<p style="margin: 5px 0;"><b>Your Answer:</b> <span style="color: #dc3545;">${userAnswersGiven || "(no answer)"}</span> ❌</p>`;
+            let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>あなたの回答:</b> ${userAnswersGiven} <span style="color: var(--duo-green);">✅</span></p>` : `<p style="margin: 5px 0;"><b>あなたの回答:</b> <span style="color: var(--duo-red);">${userAnswersGiven || "(無回答)"}</span> ❌</p>`;
             const div = document.createElement("div");
             div.style.cssText = "text-align: left; margin: 15px 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;";
             div.innerHTML = `<p style="margin: 5px 0;"><b>Q${idx + 1}:</b> ${highlightedSentence}</p><p style="margin: 5px 0; color: #555; font-size: 14px;"><b>和訳:</b> ${originalQuestion.jpTranslation}</p>${yourAnswerHTML}`;
@@ -619,7 +655,7 @@
         backToStartBtn.classList.remove("hidden");
         if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
         if (incorrectQuestions.length > 0) {
-            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`; // <<< ここでボタン名を変えられます
             retryBtn.classList.remove("hidden");
         } else {
             retryBtn.classList.add("hidden");
@@ -658,7 +694,7 @@
       history.forEach(record => {
         const listItem = document.createElement('li');
         listItem.textContent = `[${record.date}] ${record.name} - スコア: ${record.score}`;
-        listItem.title = 'クリックしてこの結果をPDFでダウンロード';
+        listItem.title = 'この結果をPDFでダウンロード';
         listItem.addEventListener('click', () => {
           downloadHistoryPDF(record);
         });
@@ -720,7 +756,7 @@
             const loadedIncorrect = allQuestions.filter(q => incorrectSentences.includes(q.sentence));
             if (loadedIncorrect.length > 0) {
               incorrectQuestions = loadedIncorrect;
-              retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+              retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`; // <<< ここでボタン名を変えられます
               retryBtn.classList.remove("hidden");
             }
           }
@@ -834,7 +870,7 @@
         doc.save("Eiken-Pre-1-Vocab-List.pdf");
     }
 
-    // --- イベントリスナー ---
+    // --- Event Listeners ---
     pdfBtn.onclick = downloadPDF;
     wrongPdfBtn.onclick = downloadWrongPDF;
     submitBtn.onclick = checkAnswer;
@@ -848,7 +884,6 @@
     toggleHistoryBtn.addEventListener('click', () => {
       if (historyContainer.classList.contains('show')) {
         historyContainer.classList.remove('show');
-        toggleHistoryBtn.textContent = '履歴を見る';
       } 
       else {
         const inputPassword = prompt('パスワードを入力してください:');
@@ -856,12 +891,15 @@
 
         if (inputPassword === CORRECT_PASSWORD) {
           historyContainer.classList.add('show');
-          toggleHistoryBtn.textContent = '履歴を閉じる';
         } else {
           alert('パスワードが違います。');
         }
       }
     });
+
+    closeHistoryBtn.onclick = () => {
+      historyContainer.classList.remove('show');
+    };
 
     clearHistoryBtn.addEventListener('click', () => {
       const inputPassword = prompt('履歴を削除するにはパスワードを入力してください:');
@@ -879,11 +917,9 @@
       }
     });
     
-    historyTitle.addEventListener('click', () => {
+    function secretClickHandler() {
       titleClickCount++;
-
       clearTimeout(titleClickTimer);
-
       titleClickTimer = setTimeout(() => {
         titleClickCount = 0;
       }, 1500);
@@ -891,10 +927,12 @@
       if (titleClickCount >= 5) {
         titleClickCount = 0;
         clearTimeout(titleClickTimer);
-        
-        clearHistoryBtn.click();
+        toggleHistoryBtn.click();
       }
-    });
+    }
+
+    mainTitle.addEventListener('click', secretClickHandler);
+    startScreenTitle.addEventListener('click', secretClickHandler);
 
     document.addEventListener('keyup', (event) => {
         if (event.key !== 'Enter') return;
@@ -916,17 +954,21 @@
     document.addEventListener('DOMContentLoaded', () => {
       displayPlayHistory();
     });
+    
+    usernameInput.addEventListener('input', () => {
+        if (usernameInput.value.trim() !== '') {
+            startBtn.disabled = false;
+        } else {
+            startBtn.disabled = true;
+        }
+    });
 
     startBtn.addEventListener('click', () => {
-      const name = usernameInput.value.trim();
-      if (name === '') {
-        alert('Please enter your name.');
-        return;
-      }
+      playerName = usernameInput.value.trim();
       
-      playerName = name;
-      
+      startScreen.classList.remove('animate-in');
       startScreen.classList.add('hidden');
+      
       quizContainer.classList.remove('hidden');
       header.classList.remove('hidden');
       
