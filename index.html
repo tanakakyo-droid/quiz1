@@ -6,7 +6,6 @@
   <title>英検準一級単語クイズ</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/wanakana/wanakana.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,7 +67,6 @@
       font-style: italic;
       color: var(--dark-text);
       text-shadow: none;
-      cursor: pointer;
     }
 
     #start-screen, .quiz-container {
@@ -92,6 +90,9 @@
       font-size: 32px;
       font-weight: 900;
       margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #start-screen p {
       font-size: 18px;
@@ -115,40 +116,11 @@
       border-color: var(--duo-blue);
     }
     
-    #user-selection {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        color: white;
-        font-size: 40px;
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        animation: popInAvatar 0.4s ease-out;
-    }
-    #passcode-wrapper {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease-in-out;
-    }
-    #passcode-wrapper.show {
-        max-height: 100px;
-    }
-
     .quiz-container {
       width: 100%;
       min-height: 550px;
       box-sizing: border-box;
-      opacity: 1; /* Make it visible by default */
     }
-
     .input-field {
       margin: 10px;
       padding: 10px 15px;
@@ -211,6 +183,8 @@
     }
     #header-buttons-container div { margin-bottom: 5px; }
     #header-buttons-container div:last-child { margin-bottom: 0; }
+
+    #toggleHistoryBtn { display: none; }
 
     .circle-button {
       width: 36px;
@@ -353,10 +327,6 @@
       80% { transform: translate(160px, -50%) scale(1.1); opacity: 1; }
       100% { transform: translate(160px, -50%) scale(1); opacity: 1; }
     }
-    @keyframes popInAvatar {
-      from { transform: scale(0.5); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
 
     @media (max-width: 768px) {
       body { padding-bottom: 10px; }
@@ -367,14 +337,7 @@
       }
       #header-buttons-container { align-items: center; }
       .button { padding: 10px 12px; font-size: 14px; }
-      
-      #start-screen, .quiz-container { 
-        width: 95%; 
-        margin: 15px auto; 
-        padding: 20px; 
-        min-height: 0; 
-      }
-
+      #start-screen, .quiz-container { width: 95%; margin: 15px auto; padding: 20px; min-height: 0; }
       #start-screen h1 { font-size: 24px; }
       #new-user-input, #user-select, #passcode-input { width: 90%; box-sizing: border-box; font-size: 18px; }
       #question { font-size: 22px; }
@@ -394,8 +357,8 @@
     <div id="title">Eiken Pre-1 Vocabulary Quiz</div>
     <div id="header-buttons-container">
       <div id="top-row-buttons">
-        <button class="button btn-blue hidden" id="toggleHistoryBtn">全履歴</button>
-        <button class="button btn-blue" id="backToStartBtn">最初に戻る</button>
+        <button class="button btn-blue" id="toggleHistoryBtn">履歴</button>
+        <button class="button btn-blue hidden" id="backToStartBtn">最初に戻る</button>
         <button class="button btn-blue hidden" id="retryBtn">間違えた問題に再挑戦</button>
       </div>
       <div id="bottom-row-buttons">
@@ -409,19 +372,13 @@
   <div id="start-screen" class="animate-in">
     <h1>英検準一級単語クイズ</h1>
     <div id="user-selection">
-        <p>Welcome back! Please select your profile.</p>
-        <div id="avatar-display"></div>
+        <p>Select your profile to continue.</p>
         <select id="user-select">
             <option value="">-- ユーザーを選択 --</option>
         </select>
-        <div id="passcode-wrapper">
-            <input type="password" id="passcode-input" placeholder="パスコードを入力" maxlength="4">
-        </div>
+        <input type="password" id="passcode-input" class="hidden" placeholder="パスコードを入力" maxlength="4">
         <button class="button btn-green" id="startBtn" disabled>ログイン</button>
-        <p style="margin-top: 20px;">
-            <a href="#" id="show-add-user-btn">または、新しいユーザーを登録</a> | 
-            <a href="#" id="delete-user-btn" style="color: var(--duo-red);">ユーザーを削除</a>
-        </p>
+        <p style="margin-top: 20px;"><a href="#" id="show-add-user-btn">または、新しいユーザーを登録</a></p>
     </div>
     <div id="add-user" class="hidden">
         <p>Register a new user with a 4-digit passcode.</p>
@@ -495,33 +452,16 @@
 
     const correctMessages = ["Great job!", "Awesome!", "You got it!", "Fantastic!", "Superb!"];
     const incorrectMessages = ["Nice try.", "Keep going.", "Almost!", "Not quite."];
-    const avatarColors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
 
     function getRandomItem(arr) {
         return arr[Math.floor(Math.random() * arr.length)];
     }
-    
-    function getAvatarColor(name) {
-        let hash = 0;
-        if (!name) return avatarColors[0];
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const index = Math.abs(hash % avatarColors.length);
-        return avatarColors[index];
-    }
-
-    function generateAvatar(name) {
-        const initial = name ? name.charAt(0).toUpperCase() : '?';
-        const color = getAvatarColor(name);
-        return `<div class="avatar" style="background-color: ${color};">${initial}</div>`;
-    }
 
     const header = document.querySelector("header");
     const startScreen = document.getElementById("start-screen");
-    const mainContentArea = document.getElementById("main-content-area");
     const quizContainer = document.querySelector(".quiz-container");
     const mainTitle = document.getElementById("title");
+    const startScreenTitle = document.querySelector("#start-screen h1"); 
     const qEl = document.getElementById("question");
     const inputEl = document.getElementById("inputs");
     const feedbackEl = document.getElementById("feedback");
@@ -598,42 +538,11 @@
         alert(`ユーザー「${newName}」を登録しました！`);
 
         currentPlayer = newName;
+        startScreen.classList.remove('animate-in');
         startScreen.classList.add('hidden');
-        mainContentArea.classList.remove('hidden');
+        quizContainer.classList.remove('hidden');
         header.classList.remove('hidden');
         initQuiz();
-    }
-
-    function deleteUser() {
-        const userSelect = document.getElementById('user-select');
-        const selectedName = userSelect.value;
-
-        if (!selectedName) {
-            alert('削除するユーザーを選択してください。');
-            return;
-        }
-
-        const masterPassword = prompt('この操作にはマスターパスワードが必要です:');
-        if (masterPassword === CORRECT_PASSWORD) {
-            if (confirm(`本当に「${selectedName}」を削除しますか？このユーザーのすべての履歴も完全に削除されます。`)) {
-                const userIndex = appData.users.findIndex(user => user.name === selectedName);
-                if (userIndex > -1) {
-                    appData.users.splice(userIndex, 1);
-                }
-
-                delete appData.histories[selectedName];
-
-                saveAppData();
-                populateUserDropdown();
-                document.getElementById('passcode-input').classList.add('hidden');
-                document.getElementById('startBtn').disabled = true;
-                document.getElementById('avatar-display').innerHTML = '';
-
-                alert(`ユーザー「${selectedName}」を削除しました。`);
-            }
-        } else if (masterPassword !== null) {
-            alert('マスターパスワードが違います。');
-        }
     }
 
     function loadQuestion() {
@@ -769,9 +678,9 @@
             highlighted = highlighted.replace(regex, `<span style="font-weight: 900; color: red;">${ans}</span>`);
         });
         translationEl.innerHTML = `
-            <p><b>正解の文章:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
+            <p><b>英文:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
             <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="button circle-button btn-green" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
-            <p><b>答えの意味:</b> ${q.blanksTranslation.join(", ")}</p>
+            <p><b>日本語訳:</b> ${q.blanksTranslation.join(", ")}</p>
         `;
         const isLastQuestion = index === questions.length - 1;
         prevBtn.classList.toggle("hidden", index <= 0);
@@ -798,8 +707,7 @@
         const username = currentPlayer || "(No name)";
 
         savePlayHistory(finalScoreText);
-        displayRecentHistory(); // Update recent history panel
-        
+        displayPlayHistory();
         scoreBoard.textContent = `スコア: ${finalScoreText}`;
         
         qEl.textContent = "全結果";
@@ -833,7 +741,7 @@
         backToStartBtn.classList.remove("hidden");
         if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
         if (incorrectQuestions.length > 0) {
-            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`; // <<< ここでボタン名を変えられます
             retryBtn.classList.remove("hidden");
         } else {
             retryBtn.classList.add("hidden");
@@ -857,63 +765,38 @@
         saveAppData();
     }
 
-    function displayAllUsersHistory(searchTerm = '') {
-        const historyList = document.getElementById('history-list');
-        let allHistory = [];
-        for (const user in appData.histories) {
-            if (appData.histories.hasOwnProperty(user)) {
-                allHistory = allHistory.concat(appData.histories[user]);
-            }
+    function displayPlayHistory(searchTerm = '') {
+        if (!currentPlayer) {
+            document.getElementById('history-list').innerHTML = '<li>ユーザーを選択して履歴を表示します。</li>';
+            return;
         }
-        allHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
+        let history = appData.histories[currentPlayer] || [];
+        const historyList = document.getElementById('history-list');
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
         if (lowerCaseSearchTerm) {
-            allHistory = allHistory.filter(record => {
+            history = history.filter(record => {
                 const recordDate = new Date(record.date).toLocaleString();
-                const recordText = `[${recordDate}] ${record.name} - スコア: ${record.score}`.toLowerCase();
+                const recordText = `[${recordDate}] スコア: ${record.score}`.toLowerCase();
                 return recordText.includes(lowerCaseSearchTerm);
             });
         }
 
         historyList.innerHTML = '';
-        if (allHistory.length === 0) {
-            historyList.innerHTML = '<li>まだ履歴はありません。</li>';
+        if (history.length === 0) {
+            historyList.innerHTML = '<li>このユーザーの履歴はまだありません。</li>';
         } else {
-            allHistory.forEach(record => {
+            history.forEach(record => {
                 const listItem = document.createElement('li');
                 const recordDate = new Date(record.date).toLocaleString();
-                listItem.innerHTML = `[${recordDate}] - <strong>${record.name}</strong> - スコア: ${record.score}`;
+                listItem.textContent = `[${recordDate}] - スコア: ${record.score}`;
                 listItem.title = 'この結果をPDFでダウンロード';
                 listItem.addEventListener('click', () => {
-                    downloadHistoryPDF(record);
+                downloadHistoryPDF(record);
                 });
                 historyList.appendChild(listItem);
             });
         }
-    }
-
-    function displayRecentHistory() {
-        const recentList = document.getElementById('recent-history-list');
-        recentList.innerHTML = '';
-        if (!currentPlayer || !appData.histories[currentPlayer]) {
-            recentList.innerHTML = '<li>No recent history.</li>';
-            return;
-        }
-
-        const recentScores = appData.histories[currentPlayer].slice(0, 5);
-        if (recentScores.length === 0) {
-            recentList.innerHTML = '<li>No recent history.</li>';
-            return;
-        }
-
-        recentScores.forEach(record => {
-            const listItem = document.createElement('li');
-            const recordDate = new Date(record.date).toLocaleDateString();
-            listItem.innerHTML = `<strong>${recordDate}:</strong> ${record.score}`;
-            recentList.appendChild(listItem);
-        });
     }
     
     function initQuiz() { 
@@ -927,7 +810,6 @@
         shuffle(questions); 
         current = 0; 
         loadQuestion(); 
-        displayRecentHistory();
     }
     function restartQuiz() { 
         window.location.reload();
@@ -1118,13 +1000,19 @@
     backToStartBtn.onclick = restartQuiz;
 
     toggleHistoryBtn.addEventListener('click', () => {
-        const inputPassword = prompt('マスターパスワードを入力してください:');
+      if (historyContainer.classList.contains('show')) {
+        historyContainer.classList.remove('show');
+      } 
+      else {
+        const inputPassword = prompt('パスワードを入力してください:');
+        if (inputPassword === null) return;
+
         if (inputPassword === CORRECT_PASSWORD) {
-          displayAllUsersHistory();
           historyContainer.classList.add('show');
-        } else if (inputPassword !== null) {
+        } else {
           alert('パスワードが違います。');
         }
+      }
     });
 
     closeHistoryBtn.onclick = () => {
@@ -1132,18 +1020,19 @@
     };
 
     clearHistoryBtn.addEventListener('click', () => {
-      const inputPassword = prompt('すべての履歴を削除するにはマスターパスワードを入力してください:');
+      if (!currentPlayer) {
+            alert('履歴を消去するユーザーを選択してください。');
+            return;
+        }
+      const inputPassword = prompt('履歴を削除するにはパスワードを入力してください:');
       if (inputPassword === null) return;
       
       if (inputPassword === CORRECT_PASSWORD) {
-        if (confirm('本当によろしいですか？すべてのユーザーの履歴が完全に削除されます。')) {
-          appData.histories = {};
-          Object.keys(appData.histories).forEach(userName => {
-              appData.histories[userName] = [];
-          });
+        if (confirm(`本当に「${currentPlayer}」の履歴をすべて消去しますか？`)) {
+          appData.histories[currentPlayer] = [];
           saveAppData();
-          displayAllUsersHistory();
-          alert('すべての履歴を削除しました。');
+          displayPlayHistory();
+          alert('履歴を削除しました。');
         }
       } else {
         alert('パスワードが違います。');
@@ -1165,7 +1054,8 @@
     }
 
     mainTitle.addEventListener('click', secretClickHandler);
-    
+    startScreenTitle.addEventListener('click', secretClickHandler);
+
     document.addEventListener('keyup', (event) => {
         if (event.key !== 'Enter') return;
         if (keyupLock) {
@@ -1186,7 +1076,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadAppData();
         populateUserDropdown();
-        startScreen.classList.add('animate-in'); // Animate in the start screen
+        displayPlayHistory();
 
         const userSelect = document.getElementById('user-select');
         const showAddUserBtn = document.getElementById('show-add-user-btn');
@@ -1198,22 +1088,16 @@
         const newUserPasscode = document.getElementById('new-user-passcode');
         const startBtn = document.getElementById('startBtn');
         const passcodeInput = document.getElementById('passcode-input');
-        const passcodeWrapper = document.getElementById('passcode-wrapper');
-        const avatarDisplay = document.getElementById('avatar-display');
-        const deleteUserBtn = document.getElementById('delete-user-btn');
 
         userSelect.addEventListener('change', () => {
             const selectedName = userSelect.value;
             passcodeInput.value = '';
-            avatarDisplay.innerHTML = '';
-
             if (selectedName) {
-                avatarDisplay.innerHTML = generateAvatar(selectedName);
-                passcodeWrapper.classList.add('show');
+                passcodeInput.classList.remove('hidden');
                 passcodeInput.focus();
                 startBtn.disabled = true;
             } else {
-                passcodeWrapper.classList.remove('show');
+                passcodeInput.classList.add('hidden');
                 startBtn.disabled = true;
             }
         });
@@ -1249,8 +1133,9 @@
 
             if (user && enteredPasscode === user.passcode) {
                 currentPlayer = selectedName;
+                startScreen.classList.remove('animate-in');
                 startScreen.classList.add('hidden');
-                mainContentArea.classList.remove('hidden');
+                quizContainer.classList.remove('hidden');
                 header.classList.remove('hidden');
                 initQuiz();
             } else {
@@ -1259,20 +1144,10 @@
                 passcodeInput.focus();
             }
         });
-
-        deleteUserBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            deleteUser();
-        });
-        
-        const startScreenTitleH1 = document.querySelector("#start-screen h1");
-        if(startScreenTitleH1) {
-          startScreenTitleH1.addEventListener('click', secretClickHandler);
-        }
     });
     
     historySearchInput.addEventListener('input', () => {
-      displayAllUsersHistory(historySearchInput.value);
+      displayPlayHistory(historySearchInput.value);
     });
   </script>
 </body>
