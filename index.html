@@ -6,11 +6,9 @@
   <title>英検準一級単語クイズ</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/wanakana/wanakana.min.js"></script>
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
-
   <style>
     :root {
       --duo-green: #58cc02;
@@ -18,6 +16,7 @@
       --duo-blue: #1cb0f6;
       --duo-blue-dark: #1899d6;
       --duo-red: #ea2b2b;
+      --duo-red-dark: #c82424;
       --duo-yellow-light: rgba(254, 219, 0, 0.1);
       --duo-green-light: rgba(88, 204, 2, 0.15);
       --duo-blue-light: rgba(28, 176, 246, 0.1);
@@ -26,21 +25,19 @@
       --white: #ffffff;
       --dark-text: #4c4c4c;
     }
-
     body {
       font-family: 'Nunito', sans-serif;
       text-align: center;
       margin: 0;
-      padding: 0;  
+      padding: 0;
       color: var(--dark-text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       overflow-x: hidden;
-      
       background-color: var(--duo-gray-light);
-      background-image: 
+      background-image:
         radial-gradient(circle 50vmax at 10% 20%, var(--duo-green-light), transparent 50%),
         radial-gradient(circle 40vmax at 90% 85%, var(--duo-blue-light), transparent 50%),
         radial-gradient(circle 35vmax at 50% 50%, var(--duo-yellow-light), transparent 45%);
@@ -48,13 +45,13 @@
       background-attachment: fixed;
     }
     header {
-      background: #8DECB4;
+      background: var(--duo-green);
       padding: 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid var(--duo-gray-border);
-      position: relative;  
+      position: relative;
       z-index: 10;
       width: 100%;
       box-sizing: border-box;
@@ -65,10 +62,9 @@
       font-size: 32px;
       font-weight: 900;
       font-style: italic;
-      color: var(--dark-text);
-      text-shadow: none;
+      color: var(--white);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
     }
-
     #start-screen, .quiz-container {
       max-width: 800px;
       margin: 40px auto;
@@ -78,14 +74,12 @@
       border: 2px solid var(--duo-gray-border);
       opacity: 0;
     }
-    
     .animate-in {
-        animation: fadeInUp 0.5s 0.1s ease-out forwards;
+      animation: fadeInUp 0.5s 0.1s ease-out forwards;
     }
     .feedback-animate {
-        animation: popIn 0.4s ease-out forwards;
+      animation: popIn 0.4s ease-out forwards;
     }
-
     #start-screen h1 {
       font-size: 32px;
       font-weight: 900;
@@ -99,7 +93,17 @@
       color: var(--dark-text);
       margin-bottom: 20px;
     }
-    #new-user-input, #user-select, #passcode-input {
+    .user-form-section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid var(--duo-gray-border);
+      border-radius: 12px;
+    }
+    .user-form-section h2 {
+        margin-top: 0;
+        font-size: 20px;
+    }
+    .start-input {
       padding: 12px 15px;
       font-size: 18px;
       font-family: 'Nunito', sans-serif;
@@ -108,14 +112,13 @@
       border: 2px solid var(--duo-gray-border);
       border-radius: 12px;
       display: block;
-      margin: 0 auto 20px;
+      margin: 10px auto;
       transition: all 0.2s ease;
     }
-    #new-user-input:focus, #user-select:focus, #passcode-input:focus {
+    .start-input:focus {
       outline: none;
       border-color: var(--duo-blue);
     }
-    
     .quiz-container {
       width: 100%;
       min-height: 550px;
@@ -136,10 +139,9 @@
       border-color: var(--duo-blue);
     }
     .input-field:disabled {
-        background-color: #f2f2f2;
-        color: #999;
+      background-color: #f2f2f2;
+      color: #999;
     }
-    
     .button {
       position: relative;
       margin: 10px 5px;
@@ -158,24 +160,27 @@
       border-bottom: 4px solid var(--duo-green-dark);
     }
     .button.btn-blue {
-        background: var(--duo-blue);
-        border-bottom: 4px solid var(--duo-blue-dark);
+      background: var(--duo-blue);
+      border-bottom: 4px solid var(--duo-blue-dark);
+    }
+    .button.btn-red {
+      background: var(--duo-red);
+      border-bottom: 4px solid var(--duo-red-dark);
     }
     .button:active {
-        top: 2px;
-        border-bottom-width: 2px;
+      top: 2px;
+      border-bottom-width: 2px;
     }
     .button:disabled {
-        background: #ccc;
-        border-bottom: 4px solid #999;
-        cursor: not-allowed;
-        top: 0;
+      background: #ccc;
+      border-bottom: 4px solid #999;
+      cursor: not-allowed;
+      top: 0;
     }
     .button:disabled:active {
-        top: 0;
-        border-bottom-width: 4px;
+      top: 0;
+      border-bottom-width: 4px;
     }
-
     #header-buttons-container {
       display: flex;
       flex-direction: column;
@@ -183,9 +188,7 @@
     }
     #header-buttons-container div { margin-bottom: 5px; }
     #header-buttons-container div:last-child { margin-bottom: 0; }
-
     #toggleHistoryBtn { display: none; }
-
     .circle-button {
       width: 36px;
       height: 36px;
@@ -195,14 +198,14 @@
       font-size: 16px;
       border-bottom: 2px solid var(--duo-green-dark);
     }
-     .circle-button:active {
-        top: 1px;
-        border-bottom-width: 1px;
+    .circle-button:active {
+      top: 1px;
+      border-bottom-width: 1px;
     }
     .hidden { display: none; }
-    #question { 
-      font-size: 28px; 
-      font-weight: 900; 
+    #question {
+      font-size: 28px;
+      font-weight: 900;
       margin-bottom: 15px;
     }
     #question .jp-translation {
@@ -230,7 +233,6 @@
     }
     #feedback.correct { color: var(--duo-green); }
     #feedback.incorrect { color: var(--duo-red); }
-
     .progress-bar {
       height: 20px;
       background-color: var(--duo-gray-border);
@@ -247,21 +249,20 @@
       transition: width 0.4s ease-in-out;
       box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
     }
-
     #history-container {
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
-      max-height: 250px;
+      max-height: 350px;
       overflow-y: auto;
       background-color: var(--white);
       border-top: 2px solid var(--duo-gray-border);
-      padding: 10px;
+      padding: 20px;
       box-sizing: border-box;
       text-align: left;
-      transform: translateY(100%);  
-      transition: transform 0.3s ease-in-out;  
+      transform: translateY(100%);
+      transition: transform 0.3s ease-in-out;
       z-index: 100;
     }
     #history-container.show { transform: translateY(0); }
@@ -280,11 +281,10 @@
       padding: 10px;
       border-bottom: 1px solid var(--duo-gray-border);
       font-size: 14px;
-      cursor: pointer;  
+      cursor: pointer;
       transition: background-color 0.2s;
     }
     #history-list li:hover { background-color: var(--duo-gray-light); }
-
     #clearHistoryBtn {
       font-size: 12px;
       padding: 4px 8px;
@@ -305,8 +305,8 @@
     }
     #closeHistoryBtn {
       position: absolute;
-      top: 5px;
-      right: 10px;
+      top: 10px;
+      right: 15px;
       font-size: 28px;
       font-weight: bold;
       color: #888;
@@ -317,7 +317,18 @@
       line-height: 1;
     }
     #closeHistoryBtn:hover { color: #000; }
-    
+    #user-management {
+        border-top: 2px solid var(--duo-gray-border);
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+    #delete-user-select {
+        padding: 8px;
+        font-family: 'Nunito', sans-serif;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+    }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -327,7 +338,6 @@
       80% { transform: translate(160px, -50%) scale(1.1); opacity: 1; }
       100% { transform: translate(160px, -50%) scale(1); opacity: 1; }
     }
-
     @media (max-width: 768px) {
       body { padding-bottom: 10px; }
       header { flex-direction: column; padding: 10px 5px; }
@@ -339,7 +349,7 @@
       .button { padding: 10px 12px; font-size: 14px; }
       #start-screen, .quiz-container { width: 95%; margin: 15px auto; padding: 20px; min-height: 0; }
       #start-screen h1 { font-size: 24px; }
-      #new-user-input, #user-select, #passcode-input { width: 90%; box-sizing: border-box; font-size: 18px; }
+      .start-input { width: 90%; box-sizing: border-box; font-size: 18px; }
       #question { font-size: 22px; }
       #feedback { position: static; transform: none; text-align: center; width: 100%; margin-top: 10px; font-size: 20px; }
       @keyframes popIn {
@@ -348,7 +358,7 @@
           100% { transform: scale(1); opacity: 1; }
       }
       #input-wrapper { min-height: 0; display: flex; flex-direction: column; align-items: center; }
-      #history-container { max-height: 40%; }
+      #history-container { max-height: 50%; }
     }
   </style>
 </head>
@@ -358,7 +368,7 @@
     <div id="header-buttons-container">
       <div id="top-row-buttons">
         <button class="button btn-blue" id="toggleHistoryBtn">履歴</button>
-        <button class="button btn-blue hidden" id="backToStartBtn">最初に戻る</button>
+        <button class="button btn-blue hidden" id="backToStartBtn">ログアウト</button>
         <button class="button btn-blue hidden" id="retryBtn">間違えた問題に再挑戦</button>
       </div>
       <div id="bottom-row-buttons">
@@ -370,25 +380,30 @@
   </header>
 
   <div id="start-screen" class="animate-in">
-    <h1>英検準一級単語クイズ</h1>
-    <div id="user-selection">
-        <p>Select your profile to continue.</p>
-        <select id="user-select">
-            <option value="">-- ユーザーを選択 --</option>
+    <h1>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#58cc02" style="margin-right: 10px;">
+        <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
+      </svg>
+      英検準一級単語クイズ
+    </h1>
+    <div class="user-form-section">
+        <h2>ログイン</h2>
+        <p>ユーザーを選択してログインしてください。</p>
+        <select id="user-select" class="start-input">
+            <option value="">ユーザーを選択...</option>
         </select>
-        <input type="password" id="passcode-input" class="hidden" placeholder="パスコードを入力" maxlength="4">
-        <button class="button btn-green" id="startBtn" disabled>ログイン</button>
-        <p style="margin-top: 20px;"><a href="#" id="show-add-user-btn">または、新しいユーザーを登録</a></p>
+        <input type="password" id="login-password" class="start-input" placeholder="パスワード">
+        <button class="button btn-green" id="loginBtn" disabled>ログイン</button>
     </div>
-    <div id="add-user" class="hidden">
-        <p>Register a new user with a 4-digit passcode.</p>
-        <input type="text" id="new-user-input" placeholder="新しい名前">
-        <input type="password" id="new-user-passcode" placeholder="4桁のパスコード" maxlength="4">
-        <button class="button btn-blue" id="add-user-btn">登録</button>
-        <p style="margin-top: 20px;"><a href="#" id="back-to-select-btn">ユーザー選択に戻る</a></p>
+    <div class="user-form-section">
+        <h2>新規登録</h2>
+        <p>新しい名前とパスワードで登録します。</p>
+        <input type="text" id="new-username" class="start-input" placeholder="新しい名前を入力">
+        <input type="password" id="register-password" class="start-input" placeholder="パスワードを設定">
+        <button class="button btn-blue" id="registerBtn" disabled>登録して開始</button>
     </div>
   </div>
-  
+
   <div class="quiz-container hidden">
     <div id="question"></div>
     <div id="input-wrapper">
@@ -411,6 +426,13 @@
     <h2>プレイ履歴<button id="clearHistoryBtn">全て消去</button></h2>
     <input type="search" id="historySearchInput" placeholder="名前や日付で履歴を検索...">
     <ul id="history-list"></ul>
+    <div id="user-management">
+        <h2>ユーザー管理</h2>
+        <select id="delete-user-select">
+            <option value="">削除するユーザーを選択...</option>
+        </select>
+        <button class="button btn-red" id="deleteUserBtn" disabled>選択したユーザーを削除</button>
+    </div>
   </div>
 
   <script>
@@ -436,32 +458,32 @@
       { "sentence": "We will ___ the class at 3:00 p.m.","answers": [ "resume" ],"translation": "We will resume the class at 3:00 p.m.","jpTranslation": "午後3時に授業を再開します。","blanksTranslation": [ "再開します" ] },
       { "sentence": "She was ___ after a day of walking in the city.","answers": [ "weary" ],"translation": "She was weary after a day of walking in the city.","jpTranslation": "彼女は一日中街を歩いて疲れきっていた。","blanksTranslation": [ "疲れきっていた" ] }
     ];
-    
-    const CORRECT_PASSWORD = '1234';
-    let appData = { users: [], histories: {} };
-    let currentPlayer = '';
+
+    const ADMIN_PASSWORD = '1234';
+
+    // State Variables
+    let playerName = '';
     let questions = [];
+    let registeredUsers = [];
     let current = 0, score = 0;
     let lastAnsweredIndex = -1;
     let userAnswers = [], incorrectQuestions = [], retryMode = false, wrongAnswers = [];
     let keyupLock = false;
-    
     let titleClickCount = 0;
     let titleClickTimer = null;
-    let englishVoices = [];
 
-    const correctMessages = ["Great job!", "Awesome!", "You got it!", "Fantastic!", "Superb!"];
-    const incorrectMessages = ["Nice try.", "Keep going.", "Almost!", "Not quite."];
-
-    function getRandomItem(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
-    }
-
+    // DOM Elements
     const header = document.querySelector("header");
     const startScreen = document.getElementById("start-screen");
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const userSelect = document.getElementById("user-select");
+    const loginPasswordInput = document.getElementById("login-password");
+    const newUsernameInput = document.getElementById("new-username");
+    const registerPasswordInput = document.getElementById("register-password");
     const quizContainer = document.querySelector(".quiz-container");
     const mainTitle = document.getElementById("title");
-    const startScreenTitle = document.querySelector("#start-screen h1"); 
+    const startScreenTitle = document.querySelector("#start-screen h1");
     const qEl = document.getElementById("question");
     const inputEl = document.getElementById("inputs");
     const feedbackEl = document.getElementById("feedback");
@@ -483,61 +505,87 @@
     const clearHistoryBtn = document.getElementById("clearHistoryBtn");
     const historySearchInput = document.getElementById("historySearchInput");
     const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const deleteUserSelect = document.getElementById("delete-user-select");
+    const deleteUserBtn = document.getElementById("deleteUserBtn");
+
+    // --- User Management Functions ---
+    // NOTE: Passwords are stored in plaintext in localStorage. This is not secure for a real web application.
+    function loadUsers() {
+        registeredUsers = JSON.parse(localStorage.getItem('quizUsers')) || [];
+        populateUserDropdowns();
+    }
+
+    function saveUsers() {
+        localStorage.setItem('quizUsers', JSON.stringify(registeredUsers));
+    }
+
+    function populateUserDropdowns() {
+        const defaultOption = '<option value="">ユーザーを選択...</option>';
+        const deleteDefaultOption = '<option value="">削除するユーザーを選択...</option>';
+        
+        const options = registeredUsers.map(user => `<option value="${user.username}">${user.username}</option>`).join('');
+        
+        userSelect.innerHTML = defaultOption + options;
+        deleteUserSelect.innerHTML = deleteDefaultOption + options;
+    }
     
-    function saveAppData() {
-        localStorage.setItem('quizAppData', JSON.stringify(appData));
-    }
+    function loginUser() {
+        const username = userSelect.value;
+        const password = loginPasswordInput.value;
+        if (!username || !password) return;
 
-    function loadAppData() {
-        const data = localStorage.getItem('quizAppData');
-        if (data) {
-            appData = JSON.parse(data);
-            if (appData.users.length > 0 && typeof appData.users[0] === 'string') {
-              console.log("Migrating old user data structure...");
-              appData.users = appData.users.map(name => ({ name: name, passcode: '0000' }));
-              saveAppData();
-              alert('ユーザーデータ構造が更新されました。既存のユーザーの仮パスコードは「0000」です。');
-            }
+        const user = registeredUsers.find(u => u.username === username);
+
+        if (user && user.password === password) {
+            playerName = user.username;
+            startQuiz();
+        } else {
+            alert('ユーザー名またはパスワードが違います。');
         }
     }
 
-    function populateUserDropdown() {
-        const userSelect = document.getElementById('user-select');
-        userSelect.innerHTML = '<option value="">-- ユーザーを選択 --</option>';
-        appData.users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.name;
-            option.textContent = user.name;
-            userSelect.appendChild(option);
-        });
-    }
+    function registerAndStartUser() {
+        const newName = newUsernameInput.value.trim();
+        const newPassword = registerPasswordInput.value;
+        if (!newName || !newPassword) return;
 
-    function registerUser() {
-        const newUserInput = document.getElementById('new-user-input');
-        const newUserPasscode = document.getElementById('new-user-passcode');
-        const newName = newUserInput.value.trim();
-        const newPasscode = newUserPasscode.value.trim();
+        const userExists = registeredUsers.some(u => u.username === newName);
+        if (userExists) {
+            alert('この名前は既に使用されています。');
+            return;
+        }
         
-        if (!newName) {
-            alert('名前を入力してください。');
-            return;
-        }
-        if (!newPasscode || newPasscode.length !== 4 || isNaN(newPasscode)) {
-            alert('4桁の数字でパスコードを入力してください。');
-            return;
-        }
-        if (appData.users.some(user => user.name === newName)) {
-            alert('この名前はすでに登録されています。');
-            return;
-        }
-
-        appData.users.push({ name: newName, passcode: newPasscode });
-        appData.histories[newName] = [];
-        saveAppData();
+        registeredUsers.push({ username: newName, password: newPassword });
+        registeredUsers.sort((a, b) => a.username.localeCompare(b.username));
+        saveUsers();
+        populateUserDropdowns();
         
-        alert(`ユーザー「${newName}」を登録しました！`);
+        playerName = newName;
+        startQuiz();
+    }
 
-        currentPlayer = newName;
+    function deleteUser() {
+        const userToDelete = deleteUserSelect.value;
+        if (!userToDelete) return;
+
+        if (confirm(`本当にユーザー「${userToDelete}」を削除しますか？\nこのユーザーの全てのプレイ履歴も削除されます。この操作は元に戻せません。`)) {
+            // Delete user from user list
+            registeredUsers = registeredUsers.filter(user => user.username !== userToDelete);
+            saveUsers();
+
+            // Delete user's play history
+            let history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+            history = history.filter(record => record.name !== userToDelete);
+            localStorage.setItem('quizPlayHistory', JSON.stringify(history));
+
+            // Refresh UI
+            populateUserDropdowns();
+            displayPlayHistory();
+            alert(`ユーザー「${userToDelete}」を削除しました。`);
+        }
+    }
+
+    function startQuiz() {
         startScreen.classList.remove('animate-in');
         startScreen.classList.add('hidden');
         quizContainer.classList.remove('hidden');
@@ -545,20 +593,27 @@
         initQuiz();
     }
 
+    // --- Quiz Core Functions ---
+    function initQuiz() {
+      lastAnsweredIndex = -1; score = 0; userAnswers = []; incorrectQuestions = []; wrongAnswers = [];
+      questions = [...allQuestions];
+      loadProgress();
+      shuffle(questions);
+      current = 0;
+      loadQuestion();
+    }
+
     function loadQuestion() {
       quizContainer.classList.remove('animate-in');
       void quizContainer.offsetWidth;
       quizContainer.classList.add('animate-in');
-
-      retryBtn.classList.add("hidden");  
+      retryBtn.classList.add("hidden");
       prevBtn.classList.add("hidden");
       nextBtn.classList.add("hidden");
       showAllBtn.classList.add("hidden");
       qEl.style.marginBottom = "";
       translationEl.style.marginTop = "";
-      
       const q = questions[current];
-      
       qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
       inputEl.innerHTML = "";
       feedbackEl.textContent = "";
@@ -566,48 +621,28 @@
       translationEl.textContent = "";
       q.answers.forEach((_, i) => {
         const inp = document.createElement("input");
-        inp.type = "text";
-        inp.className = "input-field";
-        inp.id = "ans" + i;
+        inp.type = "text"; inp.className = "input-field"; inp.id = "ans" + i;
         inputEl.appendChild(inp);
       });
       const inputs = document.querySelectorAll(".input-field");
       inputs[0].focus();
       inputs.forEach((inp, idx) => {
         inp.addEventListener("keydown", e => {
-          if (e.key === "Enter") {  
-            e.preventDefault();  
-            if (idx < inputs.length - 1) {
-              inputs[idx + 1].focus();
-            } else {
-              keyupLock = true;
-              checkAnswer();
-            }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (idx < inputs.length - 1) { inputs[idx + 1].focus(); } 
+            else { keyupLock = true; checkAnswer(); }
           }
         });
       });
       if (userAnswers[current]) {
-          inputs.forEach((inp, i) => {
-              inp.value = userAnswers[current].user[i] || "";
-          });
+        inputs.forEach((inp, i) => { inp.value = userAnswers[current].user[i] || ""; });
       }
       submitBtn.classList.remove("hidden");
       const progressPercentage = (questions.length > 1) ? Math.round((current / (questions.length - 1)) * 100) : 0;
       progressEl.style.width = `${progressPercentage}%`;
     }
-    function recalculateScore() {
-        let newScore = 0;
-        userAnswers.forEach((answer, index) => {
-            if (answer && questions[index]) {
-                const correctAnswers = questions[index].answers;
-                const isCorrect = answer.user.every((userAns, i) => (userAns || "").toLowerCase() === (correctAnswers[i] || "").toLowerCase());
-                if (isCorrect) {
-                    newScore++;
-                }
-            }
-        });
-        score = newScore;
-    }
+
     function checkAnswer() {
       const q = questions[current];
       let correct = true, answersGiven = [];
@@ -617,9 +652,7 @@
         if (userAns.toLowerCase() !== ans.toLowerCase()) correct = false;
       });
       userAnswers[current] = { question: q.sentence, user: answersGiven, correct: q.answers };
-      if (!retryMode) {
-          recalculateScore();
-      }
+      if (!retryMode) { recalculateScore(); }
       if (!correct) {
         if (!incorrectQuestions.some(item => item.sentence === q.sentence)) incorrectQuestions.push(q);
         if (!wrongAnswers.some(item => item.sentence === q.sentence)) wrongAnswers.push(q);
@@ -630,219 +663,153 @@
       lastAnsweredIndex = Math.max(lastAnsweredIndex, current);
       displayAnsweredQuestion(current);
     }
-    function loadNextNewQuestion() {
-      current++;
-      loadQuestion();
-    }
-    function displayAnsweredQuestion(index) {
-        current = index;
-        const q = questions[index];
-        const recordedEntry = userAnswers[index];
-        
-        qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
-        inputEl.innerHTML = "";
-        q.answers.forEach((_, i) => {
-            const inp = document.createElement("input");
-            inp.type = "text";
-            inp.className = "input-field";
-            inp.id = "ans" + i;
-            inputEl.appendChild(inp);
-        });
-        const inputs = inputEl.querySelectorAll(".input-field");
-        inputs.forEach((inp, i) => {
-            inp.value = recordedEntry.user[i] || "";
-            inp.disabled = true;
-            const userAnswerText = recordedEntry.user[i] || "";
-            const correctAnswerText = q.answers[i] || "";
-            const wasThisPartCorrect = userAnswerText.toLowerCase() === correctAnswerText.toLowerCase();
-            inp.style.borderColor = wasThisPartCorrect ? 'var(--duo-green)' : 'var(--duo-red)';
-            inp.style.borderWidth = '2px';
-        });
-        submitBtn.classList.add("hidden");
-        const userWasCorrect = recordedEntry.user.join(",").toLowerCase() === recordedEntry.correct.join(",").toLowerCase();
-        
-        feedbackEl.className = "";
-        feedbackEl.classList.add('feedback-animate');
-
-        if (userWasCorrect) {
-            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-            feedbackEl.textContent = `✅ ${getRandomItem(correctMessages)}`;
-            feedbackEl.classList.add("correct");
-        } else {
-            feedbackEl.textContent = `❌ ${getRandomItem(incorrectMessages)}`;
-            feedbackEl.classList.add("incorrect");
-        }
-        let highlighted = q.translation;
-        q.answers.forEach(ans => {
-            const regex = new RegExp(`\\b${ans}\\b`, "gi");
-            highlighted = highlighted.replace(regex, `<span style="font-weight: 900; color: red;">${ans}</span>`);
-        });
-        translationEl.innerHTML = `
-            <p><b>英文:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
-            <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="button circle-button btn-green" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
-            <p><b>日本語訳:</b> ${q.blanksTranslation.join(", ")}</p>
-        `;
-        const isLastQuestion = index === questions.length - 1;
-        prevBtn.classList.toggle("hidden", index <= 0);
-        showAllBtn.classList.toggle("hidden", !isLastQuestion);
-        nextBtn.classList.toggle("hidden", isLastQuestion);
-    }
-    function goToPreviousQuestion() {
-        if (current > 0) {
-            current--;
-            loadQuestion();
-        }
-    }
-    function handleNextClick() {
-        if (current < lastAnsweredIndex) {
-            displayAnsweredQuestion(current + 1);
-        } else {
-            loadNextNewQuestion();
-        }
-    }
     
-    function showAllResults() {
-        progressBar.classList.add("hidden");
-        const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
-        const username = currentPlayer || "(No name)";
-
-        savePlayHistory(finalScoreText);
-        displayPlayHistory();
-        scoreBoard.textContent = `スコア: ${finalScoreText}`;
-        
-        qEl.textContent = "全結果";
-        inputEl.innerHTML = "";
-        feedbackEl.textContent = "";
-        translationEl.innerHTML = "";
-        qEl.style.marginBottom = "0";
-        translationEl.style.marginTop = "5px";
-        translationEl.innerHTML = `<p style="margin: 0;"><b>名前:</b> ${username}</p><p><b>スコア:</b> ${finalScoreText}</p>`;
-        
-        userAnswers.forEach((entry, idx) => {
-            if (!entry) return;
-            const originalQuestion = allQuestions.find(q => q.sentence === entry.question);
-            if (!originalQuestion) return;
-            let highlightedSentence = originalQuestion.translation;
-            originalQuestion.answers.forEach(ans => {
-                const regex = new RegExp(`\\b(${ans})\\b`, 'gi');
-                highlightedSentence = highlightedSentence.replace(regex, `<span style="font-weight: 900; color: red;">$1</span>`);
-            });
-
-            const userAnswersGiven = entry.user.join(", ");
-            const isAnswerCorrect = userAnswersGiven.toLowerCase() === entry.correct.join(", ").toLowerCase();
-            let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>あなたの回答:</b> ${userAnswersGiven} <span style="color: var(--duo-green);">✅</span></p>` : `<p style="margin: 5px 0;"><b>あなたの回答:</b> <span style="color: var(--duo-red);">${userAnswersGiven || "(無回答)"}</span> ❌</p>`;
-            const div = document.createElement("div");
-            div.style.cssText = "text-align: left; margin: 15px 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;";
-            div.innerHTML = `<p style="margin: 5px 0;"><b>Q${idx + 1}:</b> ${highlightedSentence}</p><p style="margin: 5px 0; color: #555; font-size: 14px;"><b>和訳:</b> ${originalQuestion.jpTranslation}</p>${yourAnswerHTML}`;
-            translationEl.appendChild(div);
-        });
-
-        pdfBtn.classList.remove("hidden");
-        backToStartBtn.classList.remove("hidden");
-        if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
-        if (incorrectQuestions.length > 0) {
-            retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`; // <<< ここでボタン名を変えられます
-            retryBtn.classList.remove("hidden");
-        } else {
-            retryBtn.classList.add("hidden");
-        }
-        showAllBtn.classList.add("hidden"); nextBtn.classList.add("hidden"); prevBtn.classList.add("hidden");
+    function recalculateScore() {
+      score = userAnswers.filter(answer => {
+          if (!answer) return false;
+          return answer.user.every((userAns, i) => (userAns || "").toLowerCase() === (answer.correct[i] || "").toLowerCase());
+      }).length;
     }
 
-    function savePlayHistory(scoreText) {
-        if (!currentPlayer) return;
-        const date = new Date();
-        const newRecord = { 
-            name: currentPlayer, 
-            score: scoreText, 
-            date: date.toISOString(),
-            results: userAnswers 
-        };
-        if (!appData.histories[currentPlayer]) {
-            appData.histories[currentPlayer] = [];
-        }
-        appData.histories[currentPlayer].unshift(newRecord);
-        saveAppData();
+    function loadNextNewQuestion() { current++; loadQuestion(); }
+
+    function displayAnsweredQuestion(index) {
+      current = index;
+      const q = questions[index];
+      const recordedEntry = userAnswers[index];
+      qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+      inputEl.innerHTML = "";
+      q.answers.forEach((_, i) => {
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.className = "input-field"; inp.id = "ans" + i;
+        inputEl.appendChild(inp);
+      });
+      const inputs = inputEl.querySelectorAll(".input-field");
+      inputs.forEach((inp, i) => {
+        inp.value = recordedEntry.user[i] || "";
+        inp.disabled = true;
+        const wasThisPartCorrect = (recordedEntry.user[i] || "").toLowerCase() === (q.answers[i] || "").toLowerCase();
+        inp.style.borderColor = wasThisPartCorrect ? 'var(--duo-green)' : 'var(--duo-red)';
+        inp.style.borderWidth = '2px';
+      });
+      submitBtn.classList.add("hidden");
+      const userWasCorrect = recordedEntry.user.join(",").toLowerCase() === recordedEntry.correct.join(",").toLowerCase();
+      feedbackEl.className = "feedback-animate";
+      feedbackEl.textContent = userWasCorrect ? "✅ 正解！" : "❌ 不正解";
+      feedbackEl.classList.add(userWasCorrect ? "correct" : "incorrect");
+      
+      let highlighted = q.translation;
+      q.answers.forEach(ans => {
+        highlighted = highlighted.replace(new RegExp(`\\b${ans}\\b`, "gi"), `<span style="font-weight: 900; color: red;">${ans}</span>`);
+      });
+      translationEl.innerHTML = `
+        <p><b>英文:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
+        <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="button circle-button btn-green" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
+        <p><b>日本語訳:</b> ${q.blanksTranslation.join(", ")}</p>`;
+        
+      const isLastQuestion = index === questions.length - 1;
+      prevBtn.classList.toggle("hidden", index <= 0);
+      showAllBtn.classList.toggle("hidden", !(isLastQuestion && current === lastAnsweredIndex));
+      nextBtn.classList.toggle("hidden", isLastQuestion);
+    }
+
+    function goToPreviousQuestion() { if (current > 0) { current--; loadQuestion(); } }
+    function handleNextClick() { (current < lastAnsweredIndex) ? displayAnsweredQuestion(current + 1) : loadNextNewQuestion(); }
+
+    function showAllResults() {
+      progressBar.classList.add("hidden");
+      const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+      savePlayHistory(playerName, finalScoreText);
+      displayPlayHistory();
+      scoreBoard.textContent = `スコア: ${finalScoreText}`;
+      qEl.textContent = "全結果";
+      inputEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      translationEl.innerHTML = "";
+      qEl.style.marginBottom = "0";
+      translationEl.style.marginTop = "5px";
+      translationEl.innerHTML = `<p style="margin: 0;"><b>名前:</b> ${playerName}</p><p><b>スコア:</b> ${finalScoreText}</p>`;
+      userAnswers.forEach((entry, idx) => {
+        if (!entry) return;
+        const originalQuestion = allQuestions.find(q => q.sentence === entry.question);
+        if (!originalQuestion) return;
+        let highlightedSentence = originalQuestion.translation;
+        originalQuestion.answers.forEach(ans => {
+          highlightedSentence = highlightedSentence.replace(new RegExp(`\\b(${ans})\\b`, 'gi'), `<span style="font-weight: 900; color: red;">$1</span>`);
+        });
+        const userAnswersGiven = entry.user.join(", ");
+        const isAnswerCorrect = userAnswersGiven.toLowerCase() === entry.correct.join(", ").toLowerCase();
+        let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>あなたの回答:</b> ${userAnswersGiven} <span style="color: var(--duo-green);">✅</span></p>` : `<p style="margin: 5px 0;"><b>あなたの回答:</b> <span style="color: var(--duo-red);">${userAnswersGiven || "(無回答)"}</span> ❌</p>`;
+        const div = document.createElement("div");
+        div.style.cssText = "text-align: left; margin: 15px 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;";
+        div.innerHTML = `<p style="margin: 5px 0;"><b>Q${idx + 1}:</b> ${highlightedSentence}</p><p style="margin: 5px 0; color: #555; font-size: 14px;"><b>和訳:</b> ${originalQuestion.jpTranslation}</p>${yourAnswerHTML}`;
+        translationEl.appendChild(div);
+      });
+      pdfBtn.classList.remove("hidden");
+      backToStartBtn.classList.remove("hidden");
+      backToStartBtn.textContent = "ログアウト";
+      if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
+      if (incorrectQuestions.length > 0) {
+        retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+        retryBtn.classList.remove("hidden");
+      } else { retryBtn.classList.add("hidden"); }
+      showAllBtn.classList.add("hidden"); nextBtn.classList.add("hidden"); prevBtn.classList.add("hidden");
+    }
+
+    // --- History & Data Functions ---
+    function savePlayHistory(name, scoreText) {
+      const date = new Date();
+      const formattedDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      const newRecord = { name, score: scoreText, date: formattedDate, results: JSON.parse(JSON.stringify(userAnswers)) };
+      const history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      history.unshift(newRecord);
+      localStorage.setItem('quizPlayHistory', JSON.stringify(history));
     }
 
     function displayPlayHistory(searchTerm = '') {
-        if (!currentPlayer) {
-            document.getElementById('history-list').innerHTML = '<li>ユーザーを選択して履歴を表示します。</li>';
-            return;
-        }
-        let history = appData.histories[currentPlayer] || [];
-        const historyList = document.getElementById('history-list');
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      let history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      const historyList = document.getElementById('history-list');
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      if (lowerCaseSearchTerm) {
+        history = history.filter(record => `[${record.date}] ${record.name} - スコア: ${record.score}`.toLowerCase().includes(lowerCaseSearchTerm));
+      }
+      historyList.innerHTML = '';
+      history.forEach(record => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `[${record.date}] ${record.name} - スコア: ${record.score}`;
+        listItem.title = 'この結果をPDFでダウンロード';
+        listItem.addEventListener('click', () => downloadHistoryPDF(record));
+        historyList.appendChild(listItem);
+      });
+    }
 
-        if (lowerCaseSearchTerm) {
-            history = history.filter(record => {
-                const recordDate = new Date(record.date).toLocaleString();
-                const recordText = `[${recordDate}] スコア: ${record.score}`.toLowerCase();
-                return recordText.includes(lowerCaseSearchTerm);
-            });
-        }
+    function restartQuiz() { window.location.reload(); }
 
-        historyList.innerHTML = '';
-        if (history.length === 0) {
-            historyList.innerHTML = '<li>このユーザーの履歴はまだありません。</li>';
-        } else {
-            history.forEach(record => {
-                const listItem = document.createElement('li');
-                const recordDate = new Date(record.date).toLocaleString();
-                listItem.textContent = `[${recordDate}] - スコア: ${record.score}`;
-                listItem.title = 'この結果をPDFでダウンロード';
-                listItem.addEventListener('click', () => {
-                downloadHistoryPDF(record);
-                });
-                historyList.appendChild(listItem);
-            });
-        }
+    function retryIncorrect() {
+      if (incorrectQuestions.length === 0) return;
+      lastAnsweredIndex = -1; score = 0; userAnswers = []; wrongAnswers = [];
+      questions = [...incorrectQuestions];
+      incorrectQuestions = [];
+      retryMode = true;
+      scoreBoard.textContent = "";
+      progressBar.classList.remove("hidden");
+      pdfBtn.classList.add("hidden"); wrongPdfBtn.classList.add("hidden"); retryBtn.classList.add("hidden");
+      backToStartBtn.classList.add("hidden");
+      quizContainer.classList.remove("hidden");
+      header.classList.remove("hidden");
+      current = 0;
+      loadQuestion();
     }
-    
-    function initQuiz() { 
-        lastAnsweredIndex = -1; 
-        score = 0; 
-        userAnswers = []; 
-        incorrectQuestions = []; 
-        wrongAnswers = []; 
-        questions = [...allQuestions]; 
-        loadProgress(); 
-        shuffle(questions); 
-        current = 0; 
-        loadQuestion(); 
+
+    // --- Utility Functions ---
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
     }
-    function restartQuiz() { 
-        window.location.reload();
-    }
-    function retryIncorrect() { 
-        if (incorrectQuestions.length === 0) return; 
-        lastAnsweredIndex = -1; 
-        score = 0; 
-        userAnswers = []; 
-        wrongAnswers = []; 
-        questions = [...incorrectQuestions]; 
-        incorrectQuestions = []; 
-        retryMode = true; 
-        scoreBoard.textContent = ""; 
-        progressBar.classList.remove("hidden"); 
-        pdfBtn.classList.add("hidden"); 
-        wrongPdfBtn.classList.add("hidden"); 
-        retryBtn.classList.add("hidden"); 
-        backToStartBtn.classList.add("hidden"); 
-        quizContainer.classList.remove("hidden");
-        header.classList.remove("hidden");
-        current = 0; 
-        loadQuestion(); 
-    }
-    function shuffle(array) { 
-        for (let i = array.length - 1; i > 0; i--) { 
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]; 
-        } 
-    }
-    function saveProgress() { 
-        const incorrectSentences = incorrectQuestions.map(q => q.sentence); 
-        localStorage.setItem('eikenQuizIncorrect', JSON.stringify(incorrectSentences)); 
+    function saveProgress() {
+      localStorage.setItem('eikenQuizIncorrect', JSON.stringify(incorrectQuestions.map(q => q.sentence)));
     }
     function loadProgress() {
       try {
@@ -863,132 +830,93 @@
         localStorage.removeItem('eikenQuizIncorrect');
       }
     }
-
-    function loadVoices() {
-        englishVoices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en-'));
+    function speak(text) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.voice = speechSynthesis.getVoices().find(v => v.lang === "en-US" && v.name.includes("Female")) || null;
+      speechSynthesis.speak(u);
     }
     
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = loadVoices;
+    // --- PDF Generation Functions ---
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let usernameForPdf = wanakana.isJapanese(playerName) ? wanakana.toRomaji(playerName) : playerName;
+      const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+      doc.setFontSize(14); doc.text("Quiz Results", 10, 10);
+      if (usernameForPdf) doc.text(`Name: ${usernameForPdf}`, 10, 20);
+      doc.text(`Score: ${finalScoreText}`, 10, 30);
+      let y = 40;
+      userAnswers.forEach((entry, idx) => {
+        if (!entry) return;
+        const linesQ = doc.splitTextToSize(`Q${idx + 1}: ${entry.question}`, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 7;
+        const linesU = doc.splitTextToSize(`Your Answer: ${entry.user.join(", ")}`, 180);
+        doc.text(linesU, 10, y); y += linesU.length * 7;
+        const linesC = doc.splitTextToSize(`Correct Answer: ${entry.correct.join(", ")}`, 180);
+        doc.text(linesC, 10, y); y += linesC.length * 7 + 5;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      doc.save("quiz_results.pdf");
     }
-    loadVoices();
-
-    function speak(text) { 
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "en-US";
-
-        if (englishVoices.length > 0) {
-            let selectedVoice = englishVoices.find(v => v.lang === "en-US" && v.name.includes("Female"));
-            if (!selectedVoice) {
-                selectedVoice = englishVoices.find(v => v.lang === "en-US");
-            }
-            if (!selectedVoice) {
-                selectedVoice = englishVoices[0];
-            }
-            u.voice = selectedVoice;
-        }
-        speechSynthesis.speak(u); 
+    function downloadWrongPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(14); doc.text("Wrong Vocabulary Results", 10, 10);
+      let y = 20;
+      wrongAnswers.forEach((q, idx) => {
+        const linesQ = doc.splitTextToSize(`${idx + 1}. ${q.sentence}`, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 8;
+        const linesA = doc.splitTextToSize(`Answer: ${q.answers.join(", ")}`, 180);
+        doc.text(linesA, 10, y); y += linesA.length * 8 + 5;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      doc.save("Wrong-vocab.pdf");
     }
-    function downloadPDF() { 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        let usernameForPdf = wanakana.isJapanese(currentPlayer) ? wanakana.toRomaji(currentPlayer) : currentPlayer;
-
-        const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
-        doc.setFontSize(14);
-        doc.text("Quiz Results", 10, 10);
-        if (usernameForPdf) doc.text(`Name: ${usernameForPdf}`, 10, 20);
-        doc.text(`Score: ${finalScoreText}`, 10, 30);
-        let y = 40;
-        userAnswers.forEach((entry, idx) => {
-            if (!entry) return;
-            const linesQ = doc.splitTextToSize(`Q${idx + 1}: ${entry.question}`, 180);
-            doc.text(linesQ, 10, y); y += linesQ.length * 7;
-            const linesU = doc.splitTextToSize(`Your Answer: ${entry.user.join(", ")}`, 180);
-            doc.text(linesU, 10, y); y += linesU.length * 7;
-            const linesC = doc.splitTextToSize(`Correct Answer: ${entry.correct.join(", ")}`, 180);
-            doc.text(linesC, 10, y); y += linesC.length * 7 + 5;
-            if (y > 270) { doc.addPage(); y = 20; }
-        });
-        doc.save("quiz_results.pdf");
-    }
-    function downloadWrongPDF() { 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(14);
-        doc.text("Wrong Vocabulary Results", 10, 10);
-        let y = 20;
-        wrongAnswers.forEach((q, idx) => {
-            const linesQ = doc.splitTextToSize(`${idx + 1}. ${q.sentence}`, 180);
-            doc.text(linesQ, 10, y); y += linesQ.length * 8;
-            const linesA = doc.splitTextToSize(`Answer: ${q.answers.join(", ")}`, 180);
-            doc.text(linesA, 10, y); y += linesA.length * 8 + 5;
-            if (y > 270) { doc.addPage(); y = 20; }
-        });
-        doc.save("Wrong-vocab.pdf");
-    }
-    
     function downloadHistoryPDF(historyRecord) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-
       let usernameForPdf = wanakana.isJapanese(historyRecord.name) ? wanakana.toRomaji(historyRecord.name) : historyRecord.name;
-
-      doc.setFontSize(16);
-      doc.text("Quiz Results", 105, 15, null, null, "center");
+      doc.setFontSize(16); doc.text("Quiz Results", 105, 15, null, null, "center");
       doc.setFontSize(12);
       doc.text(`Name: ${usernameForPdf}`, 10, 25);
       doc.text(`Score: ${historyRecord.score}`, 10, 32);
-      doc.text(`Date: ${new Date(historyRecord.date).toLocaleString()}`, 10, 39);
-      let y = 50; 
+      doc.text(`Date: ${historyRecord.date}`, 10, 39);
+      let y = 50;
       historyRecord.results.forEach((entry, idx) => {
         if (!entry) return;
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
+        if (y > 270) { doc.addPage(); y = 20; }
         const isCorrect = entry.user.join(",").toLowerCase() === entry.correct.join(",").toLowerCase();
-        doc.setFontSize(12);
-        doc.text(`Q${idx + 1}: ${entry.question}`, 10, y);
-        y += 7;
-        doc.setFontSize(10);
-        doc.setTextColor(isCorrect ? '#28a745' : '#dc3545'); 
-        doc.text(`Your Answer: ${entry.user.join(", ") || "(no answer)"}`, 15, y);
-        y += 7;
+        doc.setFontSize(12); doc.text(`Q${idx + 1}: ${entry.question}`, 10, y); y += 7;
+        doc.setFontSize(10); doc.setTextColor(isCorrect ? '#28a745' : '#dc3545');
+        doc.text(`Your Answer: ${entry.user.join(", ") || "(no answer)"}`, 15, y); y += 7;
         if (!isCorrect) {
-          doc.setTextColor('#333333'); 
-          doc.text(`Correct Answer: ${entry.correct.join(", ")}`, 15, y);
-          y += 7;
+          doc.setTextColor('#333333');
+          doc.text(`Correct Answer: ${entry.correct.join(", ")}`, 15, y); y += 7;
         }
-        y += 5; 
+        y += 5;
       });
-      
       const datePart = historyRecord.date.replace(/[/:\s]/g, '-');
       const namePart = usernameForPdf.replace(/\s/g, '_');
-      const fileName = `${datePart}-${namePart}.pdf`;
-      doc.save(fileName);
+      doc.save(`${datePart}-${namePart}.pdf`);
     }
-
-    function downloadAllQuestionsPDF() { 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.text("Eiken Pre-1 Vocabulary List", 10, 15);
-        let y = 25;
-        doc.setFontSize(12);
-        allQuestions.forEach((q, idx) => {
-            if (y > 270) { doc.addPage(); y = 20; }
-            const questionText = `${idx + 1}. ${q.sentence.replace('___', `[ ${q.answers[0]} ]`)}`;
-            const linesQ = doc.splitTextToSize(questionText, 180);
-            doc.text(linesQ, 10, y);
-            y += linesQ.length * 7 + 5;
-        });
-        doc.save("Eiken-Pre-1-Vocab-List.pdf");
+    function downloadAllQuestionsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16); doc.text("Eiken Pre-1 Vocabulary List", 10, 15);
+      let y = 25;
+      doc.setFontSize(12);
+      allQuestions.forEach((q, idx) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        const questionText = `${idx + 1}. ${q.sentence.replace('___', `[ ${q.answers[0]} ]`)}`;
+        const linesQ = doc.splitTextToSize(questionText, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 7 + 5;
+      });
+      doc.save("Eiken-Pre-1-Vocab-List.pdf");
     }
 
     // --- Event Listeners ---
+    // Quiz Buttons
     pdfBtn.onclick = downloadPDF;
     wrongPdfBtn.onclick = downloadWrongPDF;
     submitBtn.onclick = checkAnswer;
@@ -999,155 +927,89 @@
     downloadAllBtn.onclick = downloadAllQuestionsPDF;
     backToStartBtn.onclick = restartQuiz;
 
+    // Login/Register
+    loginBtn.addEventListener('click', loginUser);
+    registerBtn.addEventListener('click', registerAndStartUser);
+
+    function validateLoginFields() {
+        loginBtn.disabled = userSelect.value === '' || loginPasswordInput.value === '';
+    }
+    function validateRegisterFields() {
+        registerBtn.disabled = newUsernameInput.value.trim() === '' || registerPasswordInput.value === '';
+    }
+    userSelect.addEventListener('change', validateLoginFields);
+    loginPasswordInput.addEventListener('input', validateLoginFields);
+    newUsernameInput.addEventListener('input', validateRegisterFields);
+    registerPasswordInput.addEventListener('input', validateRegisterFields);
+    
+    loginPasswordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { loginBtn.click(); }
+    });
+    registerPasswordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { registerBtn.click(); }
+    });
+
+    // History Panel
     toggleHistoryBtn.addEventListener('click', () => {
       if (historyContainer.classList.contains('show')) {
         historyContainer.classList.remove('show');
-      } 
-      else {
-        const inputPassword = prompt('パスワードを入力してください:');
-        if (inputPassword === null) return;
-
-        if (inputPassword === CORRECT_PASSWORD) {
+      } else {
+        const inputPassword = prompt('管理者パスワードを入力してください:');
+        if (inputPassword === ADMIN_PASSWORD) {
           historyContainer.classList.add('show');
-        } else {
+        } else if (inputPassword !== null) {
           alert('パスワードが違います。');
         }
       }
     });
-
-    closeHistoryBtn.onclick = () => {
-      historyContainer.classList.remove('show');
-    };
-
+    closeHistoryBtn.onclick = () => historyContainer.classList.remove('show');
     clearHistoryBtn.addEventListener('click', () => {
-      if (!currentPlayer) {
-            alert('履歴を消去するユーザーを選択してください。');
-            return;
-        }
-      const inputPassword = prompt('履歴を削除するにはパスワードを入力してください:');
-      if (inputPassword === null) return;
-      
-      if (inputPassword === CORRECT_PASSWORD) {
-        if (confirm(`本当に「${currentPlayer}」の履歴をすべて消去しますか？`)) {
-          appData.histories[currentPlayer] = [];
-          saveAppData();
+      const inputPassword = prompt('履歴を削除するには管理者パスワードを入力してください:');
+      if (inputPassword === ADMIN_PASSWORD) {
+        if (confirm('本当によろしいですか？全てのプレイ履歴が完全に削除されます。\n(ユーザーは削除されません)')) {
+          localStorage.removeItem('quizPlayHistory');
+          historySearchInput.value = '';
           displayPlayHistory();
           alert('履歴を削除しました。');
         }
-      } else {
+      } else if (inputPassword !== null) {
         alert('パスワードが違います。');
       }
     });
-    
+    historySearchInput.addEventListener('input', () => displayPlayHistory(historySearchInput.value));
+
+    // User Deletion (in History Panel)
+    deleteUserBtn.addEventListener('click', deleteUser);
+    deleteUserSelect.addEventListener('change', () => {
+        deleteUserBtn.disabled = deleteUserSelect.value === '';
+    });
+
+    // Secret Title Click
     function secretClickHandler() {
       titleClickCount++;
       clearTimeout(titleClickTimer);
-      titleClickTimer = setTimeout(() => {
-        titleClickCount = 0;
-      }, 1500);
-
+      titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1500);
       if (titleClickCount >= 5) {
-        titleClickCount = 0;
-        clearTimeout(titleClickTimer);
+        titleClickCount = 0; clearTimeout(titleClickTimer);
         toggleHistoryBtn.click();
       }
     }
-
     mainTitle.addEventListener('click', secretClickHandler);
     startScreenTitle.addEventListener('click', secretClickHandler);
 
+    // Keyboard Shortcuts
     document.addEventListener('keyup', (event) => {
-        if (event.key !== 'Enter') return;
-        if (keyupLock) {
-            keyupLock = false;
-            return;
-        }
-        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-            return;
-        }
-        if (!nextBtn.classList.contains('hidden')) {
-            handleNextClick();
-        } 
-        else if (!showAllBtn.classList.contains('hidden')) {
-            showAllResults();
-        }
+      if (event.key !== 'Enter') return;
+      if (keyupLock) { keyupLock = false; return; }
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+      if (!nextBtn.classList.contains('hidden')) handleNextClick();
+      else if (!showAllBtn.classList.contains('hidden')) showAllResults();
     });
 
+    // Initial Load
     document.addEventListener('DOMContentLoaded', () => {
-        loadAppData();
-        populateUserDropdown();
-        displayPlayHistory();
-
-        const userSelect = document.getElementById('user-select');
-        const showAddUserBtn = document.getElementById('show-add-user-btn');
-        const addUserSection = document.getElementById('add-user');
-        const userSelectionSection = document.getElementById('user-selection');
-        const backToSelectBtn = document.getElementById('back-to-select-btn');
-        const addUserBtn = document.getElementById('add-user-btn');
-        const newUserInput = document.getElementById('new-user-input');
-        const newUserPasscode = document.getElementById('new-user-passcode');
-        const startBtn = document.getElementById('startBtn');
-        const passcodeInput = document.getElementById('passcode-input');
-
-        userSelect.addEventListener('change', () => {
-            const selectedName = userSelect.value;
-            passcodeInput.value = '';
-            if (selectedName) {
-                passcodeInput.classList.remove('hidden');
-                passcodeInput.focus();
-                startBtn.disabled = true;
-            } else {
-                passcodeInput.classList.add('hidden');
-                startBtn.disabled = true;
-            }
-        });
-
-        passcodeInput.addEventListener('input', () => {
-            startBtn.disabled = passcodeInput.value.length === 0;
-        });
-        
-        showAddUserBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            userSelectionSection.classList.add('hidden');
-            addUserSection.classList.remove('hidden');
-            newUserInput.focus();
-        });
-        backToSelectBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            addUserSection.classList.add('hidden');
-            userSelectionSection.classList.remove('hidden');
-        });
-        
-        addUserBtn.addEventListener('click', registerUser);
-        newUserPasscode.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                registerUser();
-            }
-        });
-
-        startBtn.addEventListener('click', () => {
-            const selectedName = userSelect.value;
-            const enteredPasscode = passcodeInput.value;
-            const user = appData.users.find(u => u.name === selectedName);
-
-            if (user && enteredPasscode === user.passcode) {
-                currentPlayer = selectedName;
-                startScreen.classList.remove('animate-in');
-                startScreen.classList.add('hidden');
-                quizContainer.classList.remove('hidden');
-                header.classList.remove('hidden');
-                initQuiz();
-            } else {
-                alert('パスコードが違います。');
-                passcodeInput.value = '';
-                passcodeInput.focus();
-            }
-        });
-    });
-    
-    historySearchInput.addEventListener('input', () => {
-      displayPlayHistory(historySearchInput.value);
+      loadUsers();
+      displayPlayHistory();
     });
   </script>
 </body>
