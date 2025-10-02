@@ -2,98 +2,79 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英検準一級単語クイズ</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #quiz, #result { display: none; }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h1 { text-align: center; color: #333; }
+    #quiz { margin-bottom: 20px; }
+    .question { margin: 15px 0; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    #result { font-weight: bold; margin-top: 20px; font-size: 18px; text-align: center; }
+    button { display: block; margin: 20px auto; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background: #45a049; }
   </style>
 </head>
 <body>
   <h1>英検準一級単語クイズ</h1>
-  <div id="start">
-    <button onclick="startQuiz()">スタート</button>
-  </div>
   <div id="quiz"></div>
+  <button onclick="submitQuiz()">採点する</button>
   <div id="result"></div>
 
   <script>
+    // ====== 既存の問題データ ======
     const quizData = [
-      { q: "liberate の意味は？", a: "解放する", choices:["攻撃する","解放する","破壊する","避ける"] },
-      { q: "perilous の意味は？", a: "危険な", choices:["安全な","危険な","静かな","簡単な"] }
-      // …本来の問題が入る
+      { q: "liberate の意味は？", options: ["解放する", "隔離する", "破壊する"], answer: "解放する" },
+      { q: "perilous の意味は？", options: ["安全な", "危険な", "快適な"], answer: "危険な" }
     ];
 
-    let currentIndex = 0;
-    let score = 0;
-    let startTime;
-    let wrongListArray = [];
-    let currentUserId = "12345";       // ← ユーザーIDを入れる仕組みに置き換え
-    let currentUserName = "山田太郎";  // ← ユーザー名を入れる仕組みに置き換え
+    const quizContainer = document.getElementById("quiz");
+    quizData.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.classList.add("question");
+      div.innerHTML = `<p>${index + 1}. ${item.q}</p>` +
+        item.options.map(opt => 
+          `<label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label>`
+        ).join("<br>");
+      quizContainer.appendChild(div);
+    });
 
-    function startQuiz() {
-      score = 0;
-      currentIndex = 0;
-      wrongListArray = [];
-      startTime = Date.now();
-      document.getElementById("start").style.display = "none";
-      document.getElementById("quiz").style.display = "block";
-      showQuestion();
-    }
-
-    function showQuestion() {
-      if (currentIndex >= quizData.length) {
-        showResult();
-        return;
-      }
-      const q = quizData[currentIndex];
-      let html = "<p>" + (currentIndex+1) + ". " + q.q + "</p>";
-      q.choices.forEach(choice => {
-        html += `<button onclick="checkAnswer('${choice}')">${choice}</button><br>`;
+    // ====== 採点処理 ======
+    function submitQuiz() {
+      let score = 0;
+      quizData.forEach((item, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if (selected && selected.value === item.answer) {
+          score++;
+        }
       });
-      document.getElementById("quiz").innerHTML = html;
-    }
 
-    function checkAnswer(choice) {
-      const q = quizData[currentIndex];
-      if (choice === q.a) {
-        score++;
-      } else {
-        wrongListArray.push(q.q);
+      const resultText = `あなたの得点は ${score} / ${quizData.length} 点です`;
+      document.getElementById("result").textContent = resultText;
+
+      // 生徒名を入力（簡易版）
+      const studentName = prompt("名前を入力してください：");
+      if (studentName) {
+        sendResultToSheet(studentName, score);
       }
-      currentIndex++;
-      showQuestion();
     }
 
-    function showResult() {
-      const endTime = Date.now();
-      const timeTaken = Math.floor((endTime - startTime)/1000); // 秒
-      document.getElementById("quiz").style.display = "none";
-      document.getElementById("result").style.display = "block";
-      document.getElementById("result").innerHTML =
-        `<p>得点: ${score} / ${quizData.length}</p>
-         <p>正答率: ${(score/quizData.length*100).toFixed(1)}%</p>
-         <p>時間: ${timeTaken} 秒</p>`;
+    // ====== Googleスプレッドシート送信処理 ======
+    function sendResultToSheet(name, score) {
+      const url = "【https://script.google.com/macros/s/AKfycbyeeXPwpnQSK5RROujgyGaF5TAIMo8sY0TN0zIfFaOrAd5q0OImimtCJSNmg_pgiL6s/exec】"; // 例: https://script.google.com/macros/s/XXXXX/exec
 
-      // === ここから Google スプレッドシート送信処理 ===
-      const result = {
-        userId: currentUserId,
-        userName: currentUserName,
-        score: score,
-        total: quizData.length,
-        correctRate: score / quizData.length,
-        duration: timeTaken,
-        wrongWords: wrongListArray
-      };
-
-      fetch("https://script.google.com/a/macros/tseminar.co.jp/s/AKfycby42p75gpx1jyBIfiHU11oDfSBMs2pWzwpaigv__8SVv_mfx2La3LF6fCkM3fq-KV97ag/exec", {
+      fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result)
+        body: JSON.stringify({
+          name: name,
+          score: score
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
       })
-      .then(res => res.json())
-      .then(resp => console.log("送信成功:", resp))
-      .catch(err => console.error("送信失敗:", err));
-      // === 送信処理ここまで ===
+      .then(res => res.text())
+      .then(txt => console.log("送信完了:", txt))
+      .catch(err => console.error("送信エラー:", err));
     }
   </script>
 </body>
