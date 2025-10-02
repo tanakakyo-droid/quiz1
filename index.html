@@ -7,32 +7,89 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
     h1 { text-align: center; color: #333; }
-    #quiz { margin-bottom: 20px; }
+    #quiz, #result, #history, #loginSection, #registerSection { margin-bottom: 20px; }
     .question { margin: 15px 0; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    #result { font-weight: bold; margin-top: 20px; font-size: 18px; text-align: center; }
-    button { display: block; margin: 20px auto; padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
+    #result { font-weight: bold; font-size: 18px; text-align: center; }
+    button { margin: 10px 5px; padding: 8px 15px; font-size: 14px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
     button:hover { background: #45a049; }
+    input { margin: 5px; padding: 5px; }
+    select { margin: 5px; padding: 5px; }
   </style>
 </head>
 <body>
   <h1>英検準一級単語クイズ</h1>
+
+  <!-- ログイン / 登録セクション -->
+  <div id="loginSection">
+    <h3>ログイン</h3>
+    <input type="text" id="loginUsername" placeholder="ユーザー名">
+    <input type="password" id="loginPassword" placeholder="パスワード">
+    <button onclick="login()">ログイン</button>
+  </div>
+
+  <div id="registerSection">
+    <h3>新規登録</h3>
+    <input type="text" id="registerUsername" placeholder="ユーザー名">
+    <input type="password" id="registerPassword" placeholder="パスワード">
+    <button onclick="register()">登録</button>
+  </div>
+
+  <!-- クイズ表示 -->
   <div id="quiz"></div>
   <button onclick="submitQuiz()">採点する</button>
   <div id="result"></div>
 
+  <!-- 成績履歴 -->
+  <div id="history">
+    <h3>履歴</h3>
+    <select id="userSelect"></select>
+    <button onclick="viewHistory()">表示</button>
+    <button onclick="downloadPDF()">PDF出力</button>
+    <button onclick="clearHistory()">削除</button>
+    <ul id="historyList"></ul>
+  </div>
+
   <script>
-    // ====== 既存の問題データ ======
+    // ====== 問題データ（本番はここを差し替え） ======
     const quizData = [
       { q: "liberate の意味は？", options: ["解放する", "隔離する", "破壊する"], answer: "解放する" },
       { q: "perilous の意味は？", options: ["安全な", "危険な", "快適な"], answer: "危険な" }
     ];
 
+    // ====== ログイン / 登録用 ======
+    let currentUser = null;
+    const registeredUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+    function register() {
+      const username = document.getElementById("registerUsername").value;
+      const password = document.getElementById("registerPassword").value;
+      if (!username || !password) { alert("入力してください"); return; }
+      if (registeredUsers.find(u => u.username === username)) { alert("既に存在します"); return; }
+      registeredUsers.push({ username, password });
+      localStorage.setItem("users", JSON.stringify(registeredUsers));
+      alert("登録成功");
+      populateUserDropdowns();
+    }
+
+    function login() {
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+      const user = registeredUsers.find(u => u.username === username && u.password === password);
+      if (user) {
+        currentUser = username;
+        alert(username + " さんでログインしました");
+      } else {
+        alert("ユーザー名またはパスワードが違います");
+      }
+    }
+
+    // ====== クイズ描画 ======
     const quizContainer = document.getElementById("quiz");
     quizData.forEach((item, index) => {
       const div = document.createElement("div");
       div.classList.add("question");
       div.innerHTML = `<p>${index + 1}. ${item.q}</p>` +
-        item.options.map(opt => 
+        item.options.map(opt =>
           `<label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label>`
         ).join("<br>");
       quizContainer.appendChild(div);
@@ -40,27 +97,29 @@
 
     // ====== 採点処理 ======
     function submitQuiz() {
+      if (!currentUser) { alert("ログインしてください"); return; }
+
       let score = 0;
       quizData.forEach((item, index) => {
         const selected = document.querySelector(`input[name="q${index}"]:checked`);
-        if (selected && selected.value === item.answer) {
-          score++;
-        }
+        if (selected && selected.value === item.answer) { score++; }
       });
 
       const resultText = `あなたの得点は ${score} / ${quizData.length} 点です`;
       document.getElementById("result").textContent = resultText;
 
-      // 生徒名を入力（簡易版）
-      const studentName = prompt("名前を入力してください：");
-      if (studentName) {
-        sendResultToSheet(studentName, score);
-      }
+      const history = JSON.parse(localStorage.getItem("history")) || {};
+      if (!history[currentUser]) history[currentUser] = [];
+      history[currentUser].push({ score, date: new Date().toLocaleString() });
+      localStorage.setItem("history", JSON.stringify(history));
+
+      // Googleスプレッドシートに送信
+      sendResultToSheet(currentUser, score);
     }
 
-    // ====== Googleスプレッドシート送信処理 ======
+    // ====== Googleスプレッドシート送信 ======
     function sendResultToSheet(name, score) {
-      const url = "【https://script.google.com/macros/s/AKfycbyeeXPwpnQSK5RROujgyGaF5TAIMo8sY0TN0zIfFaOrAd5q0OImimtCJSNmg_pgiL6s/exec】"; // 例: https://script.google.com/macros/s/XXXXX/exec
+      const url = https://script.google.com/macros/s/AKfycbzlE9dyVjaGM72umjYxd6npaybliWW7us3ROW4cg8Ck6rm5kEpMzsFSGtpCRvC0UPlz/exec; // スプレッドシート連携用
 
       fetch(url, {
         method: "POST",
@@ -68,14 +127,50 @@
           name: name,
           score: score
         }),
-        headers: {
-          "Content-Type": "application/json"
-        }
+        headers: { "Content-Type": "application/json" }
       })
       .then(res => res.text())
       .then(txt => console.log("送信完了:", txt))
       .catch(err => console.error("送信エラー:", err));
     }
+
+    // ====== 履歴管理 ======
+    function viewHistory() {
+      const user = document.getElementById("userSelect").value;
+      const history = JSON.parse(localStorage.getItem("history")) || {};
+      const list = document.getElementById("historyList");
+      list.innerHTML = "";
+      if (history[user]) {
+        history[user].forEach(h => {
+          const li = document.createElement("li");
+          li.textContent = `${h.date} - ${h.score} 点`;
+          list.appendChild(li);
+        });
+      }
+    }
+
+    function clearHistory() {
+      const user = document.getElementById("userSelect").value;
+      if (!user) return;
+      const history = JSON.parse(localStorage.getItem("history")) || {};
+      history[user] = [];
+      localStorage.setItem("history", JSON.stringify(history));
+      viewHistory();
+    }
+
+    function downloadPDF() {
+      alert("PDF出力機能はここに統合可能です（既存処理と組み合わせ可）");
+    }
+
+    function populateUserDropdowns() {
+      const defaultOption = '<option value="">ユーザーを選択...</option>';
+      userSelect.innerHTML = defaultOption;
+      registeredUsers.forEach(user => {
+        userSelect.innerHTML += `<option value="${user.username}">${user.username}</option>`;
+      });
+    }
+
+    populateUserDropdowns();
   </script>
 </body>
 </html>
