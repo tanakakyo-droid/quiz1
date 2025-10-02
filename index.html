@@ -4,173 +4,1051 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英検準一級単語クイズ</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/wanakana/wanakana.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h1 { text-align: center; color: #333; }
-    #quiz, #result, #history, #loginSection, #registerSection { margin-bottom: 20px; }
-    .question { margin: 15px 0; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    #result { font-weight: bold; font-size: 18px; text-align: center; }
-    button { margin: 10px 5px; padding: 8px 15px; font-size: 14px; border: none; border-radius: 8px; background: #4CAF50; color: white; cursor: pointer; }
-    button:hover { background: #45a049; }
-    input { margin: 5px; padding: 5px; }
-    select { margin: 5px; padding: 5px; }
+    :root {
+      --duo-green: #58cc02;
+      --duo-green-dark: #58a700;
+      --duo-blue: #1cb0f6;
+      --duo-blue-dark: #1899d6;
+      --duo-red: #ea2b2b;
+      --duo-red-dark: #c82424;
+      --duo-yellow-light: rgba(254, 219, 0, 0.1);
+      --duo-green-light: rgba(88, 204, 2, 0.15);
+      --duo-blue-light: rgba(28, 176, 246, 0.1);
+      --duo-gray-light: #f7f7f7;
+      --duo-gray-border: #e5e5e5;
+      --white: #ffffff;
+      --dark-text: #4c4c4c;
+    }
+    body {
+      font-family: 'Nunito', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      color: var(--dark-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      background-color: var(--duo-gray-light);
+      background-image:
+        radial-gradient(circle 50vmax at 10% 20%, var(--duo-green-light), transparent 50%),
+        radial-gradient(circle 40vmax at 90% 85%, var(--duo-blue-light), transparent 50%),
+        radial-gradient(circle 35vmax at 50% 50%, var(--duo-yellow-light), transparent 45%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+    header {
+      background: var(--duo-green);
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--duo-gray-border);
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #title {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--white);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+    }
+    #start-screen, .quiz-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 40px;
+      background: var(--white);
+      border-radius: 16px;
+      border: 2px solid var(--duo-gray-border);
+      opacity: 0;
+    }
+    .animate-in {
+      animation: fadeInUp 0.5s 0.1s ease-out forwards;
+    }
+    .feedback-animate {
+      animation: popIn 0.4s ease-out forwards;
+    }
+    #start-screen h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #start-screen p {
+      font-size: 18px;
+      color: var(--dark-text);
+      margin-bottom: 20px;
+    }
+    .user-form-section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid var(--duo-gray-border);
+      border-radius: 12px;
+    }
+    .user-form-section h2 {
+        margin-top: 0;
+        font-size: 20px;
+    }
+    .start-input {
+      padding: 12px 15px;
+      font-size: 18px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      width: 300px;
+      border: 2px solid var(--duo-gray-border);
+      border-radius: 12px;
+      display: block;
+      margin: 10px auto;
+      transition: all 0.2s ease;
+    }
+    .start-input:focus {
+      outline: none;
+      border-color: var(--duo-blue);
+    }
+    .quiz-container {
+      width: 100%;
+      min-height: 550px;
+      box-sizing: border-box;
+    }
+    .input-field {
+      margin: 10px;
+      padding: 10px 15px;
+      font-size: 20px;
+      font-weight: 700;
+      width: 250px;
+      border: 2px solid var(--duo-gray-border);
+      border-radius: 12px;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--duo-blue);
+    }
+    .input-field:disabled {
+      background-color: #f2f2f2;
+      color: #999;
+    }
+    .button {
+      position: relative;
+      margin: 10px 5px;
+      padding: 12px 24px;
+      font-size: 18px;
+      font-weight: 900;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      border-radius: 16px;
+      color: white;
+      transition: top 0.1s ease, background 0.2s ease;
+    }
+    .button.btn-green {
+      background: var(--duo-green);
+      border-bottom: 4px solid var(--duo-green-dark);
+    }
+    .button.btn-blue {
+      background: var(--duo-blue);
+      border-bottom: 4px solid var(--duo-blue-dark);
+    }
+    .button.btn-red {
+      background: var(--duo-red);
+      border-bottom: 4px solid var(--duo-red-dark);
+    }
+    .button:active {
+      top: 2px;
+      border-bottom-width: 2px;
+    }
+    .button:disabled {
+      background: #ccc;
+      border-bottom: 4px solid #999;
+      cursor: not-allowed;
+      top: 0;
+    }
+    .button:disabled:active {
+      top: 0;
+      border-bottom-width: 4px;
+    }
+    #header-buttons-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    #header-buttons-container div { margin-bottom: 5px; }
+    #header-buttons-container div:last-child { margin-bottom: 0; }
+    #toggleHistoryBtn { display: none; }
+    .circle-button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      margin-left: 8px;
+      font-size: 16px;
+      border-bottom: 2px solid var(--duo-green-dark);
+    }
+    .circle-button:active {
+      top: 1px;
+      border-bottom-width: 1px;
+    }
+    .hidden { display: none; }
+    #question {
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 15px;
+    }
+    #question .jp-translation {
+      font-size: 18px;
+      color: var(--dark-text);
+      margin-top: 8px;
+      font-weight: 400;
+    }
+    #translation { font-size: 18px; margin-top: 20px; line-height: 1.6; }
+    #input-wrapper {
+      position: relative;
+      min-height: 60px;
+      margin: 20px 0;
+    }
+    #feedback {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(160px, -50%);
+      width: 200px;
+      text-align: left;
+      font-size: 24px;
+      font-weight: 900;
+      opacity: 0;
+    }
+    #feedback.correct { color: var(--duo-green); }
+    #feedback.incorrect { color: var(--duo-red); }
+    .progress-bar {
+      height: 20px;
+      background-color: var(--duo-gray-border);
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+      padding: 4px;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: var(--duo-green);
+      border-radius: 8px;
+      transition: width 0.4s ease-in-out;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
+    }
+    #history-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 350px;
+      overflow-y: auto;
+      background-color: var(--white);
+      border-top: 2px solid var(--duo-gray-border);
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: left;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 100;
+    }
+    #history-container.show { transform: translateY(0); }
+    #history-container h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
+    }
+    #history-list { list-style: none; padding: 0; margin: 0; }
+    #history-list li {
+      background-color: var(--white);
+      padding: 10px;
+      border-bottom: 1px solid var(--duo-gray-border);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #history-list li:hover { background-color: var(--duo-gray-light); }
+    #clearHistoryBtn {
+      font-size: 12px;
+      padding: 4px 8px;
+      background-color: var(--duo-red);
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 15px;
+    }
+    #historySearchInput {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    #closeHistoryBtn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #888;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+    #closeHistoryBtn:hover { color: #000; }
+    #user-management {
+        border-top: 2px solid var(--duo-gray-border);
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+    #delete-user-select {
+        padding: 8px;
+        font-family: 'Nunito', sans-serif;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0% { transform: translate(160px, -50%) scale(0.8); opacity: 0; }
+      80% { transform: translate(160px, -50%) scale(1.1); opacity: 1; }
+      100% { transform: translate(160px, -50%) scale(1); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      body { padding-bottom: 10px; }
+      header { flex-direction: column; padding: 10px 5px; }
+      #title {
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
+      #header-buttons-container { align-items: center; }
+      .button { padding: 10px 12px; font-size: 14px; }
+      #start-screen, .quiz-container { width: 95%; margin: 15px auto; padding: 20px; min-height: 0; }
+      #start-screen h1 { font-size: 24px; }
+      .start-input { width: 90%; box-sizing: border-box; font-size: 18px; }
+      #question { font-size: 22px; }
+      #feedback { position: static; transform: none; text-align: center; width: 100%; margin-top: 10px; font-size: 20px; }
+      @keyframes popIn {
+          0% { transform: scale(0.8); opacity: 0; }
+          80% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+      }
+      #input-wrapper { min-height: 0; display: flex; flex-direction: column; align-items: center; }
+      #history-container { max-height: 50%; }
+    }
   </style>
 </head>
 <body>
-  <h1>英検準一級単語クイズ</h1>
-
-  <!-- ログイン / 登録セクション -->
-  <div id="loginSection">
-    <h3>ログイン</h3>
-    <input type="text" id="loginUsername" placeholder="ユーザー名">
-    <input type="password" id="loginPassword" placeholder="パスワード">
-    <button onclick="login()">ログイン</button>
+  <header class="hidden">
+    <div id="title">Eiken Pre-1 Vocabulary Quiz</div>
+    <div id="header-buttons-container">
+      <div id="top-row-buttons">
+        <button class="button btn-blue" id="toggleHistoryBtn">履歴</button>
+        <button class="button btn-blue hidden" id="backToStartBtn">ログアウト</button>
+        <button class="button btn-blue hidden" id="retryBtn">間違えた問題に再挑戦</button>
+      </div>
+      <div id="bottom-row-buttons">
+        <button class="button btn-blue hidden" id="pdfBtn">PDFをダウンロード</button>
+        <button class="button btn-blue hidden" id="wrongPdfBtn">間違えた単語をPDF化</button>
+        <button class="button btn-blue hidden" id="downloadAllBtn">全単語リストをPDF化</button>
+      </div>
+    </div>
+  </header>
+  <div id="start-screen" class="animate-in">
+    <h1>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="#58cc02" style="margin-right: 10px;">
+        <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
+      </svg>
+      英検準一級単語クイズ
+    </h1>
+    <div class="user-form-section">
+        <h2>ログイン</h2>
+        <p>ユーザーを選択してログインしてください。</p>
+        <select id="user-select" class="start-input">
+            <option value="">ユーザーを選択...</option>
+        </select>
+        <input type="password" id="login-password" class="start-input" placeholder="パスワード">
+        <button class="button btn-green" id="loginBtn" disabled>ログイン</button>
+    </div>
+    <div class="user-form-section">
+        <h2>新規登録</h2>
+        <p>新しい名前とパスワードで登録します。</p>
+        <input type="text" id="new-username" class="start-input" placeholder="新しい名前を入力">
+        <input type="password" id="register-password" class="start-input" placeholder="パスワードを設定">
+        <button class="button btn-blue" id="registerBtn" disabled>登録して開始</button>
+    </div>
   </div>
-
-  <div id="registerSection">
-    <h3>新規登録</h3>
-    <input type="text" id="registerUsername" placeholder="ユーザー名">
-    <input type="password" id="registerPassword" placeholder="パスワード">
-    <button onclick="register()">登録</button>
+  <div class="quiz-container hidden">
+    <div id="question"></div>
+    <div id="input-wrapper">
+      <div id="inputs"></div>
+      <div id="feedback"></div>
+    </div>
+    <button class="button btn-green" id="submitBtn">決定</button>
+    <button class="button btn-blue hidden" id="prevBtn">前へ</button>
+    <button class="button btn-green hidden" id="nextBtn">次へ</button>
+    <button class="button btn-blue hidden" id="showAllBtn">結果をすべて表示</button>
+    <div id="translation"></div>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div id="scoreBoard"></div>
+    <div id="savingStatus" style="margin-top: 10px; font-weight: bold; color: var(--duo-blue);"></div>
   </div>
-
-  <!-- クイズ表示 -->
-  <div id="quiz"></div>
-  <button onclick="submitQuiz()">採点する</button>
-  <div id="result"></div>
-
-  <!-- 成績履歴 -->
-  <div id="history">
-    <h3>履歴</h3>
-    <select id="userSelect"></select>
-    <button onclick="viewHistory()">表示</button>
-    <button onclick="downloadPDF()">PDF出力</button>
-    <button onclick="clearHistory()">削除</button>
-    <ul id="historyList"></ul>
+  <div id="history-container">
+    <button id="closeHistoryBtn" title="閉じる">&times;</button>
+    <h2>プレイ履歴<button id="clearHistoryBtn">全て消去</button></h2>
+    <input type="search" id="historySearchInput" placeholder="名前や日付で履歴を検索...">
+    <ul id="history-list"></ul>
+    <div id="user-management">
+        <h2>ユーザー管理</h2>
+        <select id="delete-user-select">
+            <option value="">削除するユーザーを選択...</option>
+        </select>
+        <button class="button btn-red" id="deleteUserBtn" disabled>選択したユーザーを削除</button>
+    </div>
   </div>
-
   <script>
-    // ====== 問題データ（本番はここを差し替え） ======
-    const quizData = [
-      { q: "liberate の意味は？", options: ["解放する", "隔離する", "破壊する"], answer: "解放する" },
-      { q: "perilous の意味は？", options: ["安全な", "危険な", "快適な"], answer: "危険な" }
+    const allQuestions = [
+      { "sentence": "Patients are ___ to infection just after surgery.","answers": [ "vulnerable" ],"translation": "Patients are vulnerable to infection just after surgery.","jpTranslation": "患者は手術の直後、感染症にかかりやすくなる。","blanksTranslation": [ "かかりやすくなる" ] },
+      { "sentence": "Make sure to ___ all the warning signs.","answers": [ "heed" ],"translation": "Make sure to heed all the warning signs.","jpTranslation": "すべての警戒標識に気をつけるようにしてください。","blanksTranslation": [ "気をつける" ] },
+      { "sentence": "A ___ captured the arrest on video.","answers": [ "bystander" ],"translation": "A bystander captured the arrest on video.","jpTranslation": "その場に居合わせた人が逮捕の様子を動画に収めた。","blanksTranslation": [ "その場に居合わせた人" ] },
+      { "sentence": "The bridge eases ___ in the area.","answers": [ "congestion" ],"translation": "The bridge eases congestion in the area.","jpTranslation": "その橋は地域の混雑を緩和している。","blanksTranslation": [ "混雑" ] },
+      { "sentence": "She ___ all her appliances and replaced them with new ones.","answers": [ "discarded" ],"translation": "She discarded all her appliances and replaced them with new ones.","jpTranslation": "彼女はすべての電化製品を捨て、新しいものに買い換えた。","blanksTranslation": [ "捨て" ] },
+      { "sentence": "The ___ was completely out of control and spread quickly.","answers": [ "blaze" ],"translation": "The blaze was completely out of control and spread quickly.","jpTranslation": "炎は完全に制御不能で、あっという間に燃え広がった。","blanksTranslation": [ "炎" ] },
+      { "sentence": "He is a little ___ with a paintbrush.","answers": [ "clumsy" ],"translation": "He is a little clumsy with a paintbrush.","jpTranslation": "彼は絵筆を使うのが少し不器用だ。","blanksTranslation": [ "不器用だ" ] },
+      { "sentence": "We must ___ major sources of pollution quickly.","answers": [ "eliminate" ],"translation": "We must eliminate major sources of pollution quickly.","jpTranslation": "私たちは主要な汚染源を早急に除去しなければならない。","blanksTranslation": [ "除去しな" ] },
+      { "sentence": "The politician ___ his involvement in the scandal.","answers": [ "acknowledged" ],"translation": "The politician acknowledged his involvement in the scandal.","jpTranslation": "その政治家はスキャンダルへの関与を認めた。","blanksTranslation": [ "認めた" ] },
+      { "sentence": "\"Not all mushrooms are ___, so you have to be careful.\"","answers": [ "edible" ],"translation": "\"Not all mushrooms are edible, so you have to be careful.\"","jpTranslation": "すべてのキノコが食べられるわけではないので、注意が必要だ。","blanksTranslation": [ "食べられる" ] },
+      { "sentence": "Our people have ___ the land here for centuries.","answers": [ "cultivated" ],"translation": "Our people have cultivated the land here for centuries.","jpTranslation": "私たち一族は何世紀にもわたってこの土地を耕してきた。","blanksTranslation": [ "耕して" ] },
+      { "sentence": "She had to pay a fine because her payment was ___.","answers": [ "overdue" ],"translation": "She had to pay a fine because her payment was overdue.","jpTranslation": "支払いの期間が過ぎてしまったため、彼女は罰金を支払わなければならなかった。","blanksTranslation": [ "期間が過ぎて" ] },
+      { "sentence": "The university's ___ increases almost every year.","answers": [ "enrollment" ],"translation": "The university's enrollment increases almost every year.","jpTranslation": "その大学の登録者数はほとんど毎年増えている。","blanksTranslation": [ "登録者数" ] },
+      { "sentence": "He ___ the help of friends when setting up his business.","answers": [ "enlisted" ],"translation": "He enlisted the help of friends when setting up his business.","jpTranslation": "彼は会社を立ち上げるときに友人の援助を得た。","blanksTranslation": [ "得た" ] },
+      { "sentence": "___ reigned in the country during the civil war.","answers": [ "Anarchy" ],"translation": "Anarchy reigned in the country during the civil war.","jpTranslation": "内戦中、国は無政府状態になった。","blanksTranslation": [ "無政府状態" ] },
+      { "sentence": "She was ___ to give an answer.","answers": [ "reluctant" ],"translation": "She was reluctant to give an answer.","jpTranslation": "彼女は返事をしたがらなかった。","blanksTranslation": [ "したがらなかった" ] },
+      { "sentence": "Our company does not offer a service to ship ___ items.","answers": [ "fragile" ],"translation": "Our company does not offer a service to ship fragile items.","jpTranslation": "当社では、壊れやすいものの配送サービスは行っておりません。","blanksTranslation": [ "壊れやすい" ] },
+      { "sentence": "Your work performance will be ___ twice per year.","answers": [ "evaluated" ],"translation": "Your work performance will be evaluated twice per year.","jpTranslation": "業績は、年に2回評価されます。","blanksTranslation": [ "評価されます" ] },
+      { "sentence": "We will ___ the class at 3:00 p.m.","answers": [ "resume" ],"translation": "We will resume the class at 3:00 p.m.","jpTranslation": "午後3時に授業を再開します。","blanksTranslation": [ "再開します" ] },
+      { "sentence": "She was ___ after a day of walking in the city.","answers": [ "weary" ],"translation": "She was weary after a day of walking in the city.","jpTranslation": "彼女は一日中街を歩いて疲れきっていた。","blanksTranslation": [ "疲れきっていた" ] }
     ];
 
-    // ====== ログイン / 登録用 ======
-    let currentUser = null;
-    const registeredUsers = JSON.parse(localStorage.getItem("users")) || [];
+    // ▼▼▼ [追加] Google Apps Scriptへのデータ転送設定 ▼▼▼
+    // ★必ず変更してください★ ステップ1で取得したウェブアプリのURLをここに貼り付けます。
+    const GAS_WEB_APP_URL = 'ここにデプロイしたウェブアプリのURLを貼り付け';
+    // ▲▲▲ ▲▲▲
 
-    function register() {
-      const username = document.getElementById("registerUsername").value;
-      const password = document.getElementById("registerPassword").value;
-      if (!username || !password) { alert("入力してください"); return; }
-      if (registeredUsers.find(u => u.username === username)) { alert("既に存在します"); return; }
-      registeredUsers.push({ username, password });
-      localStorage.setItem("users", JSON.stringify(registeredUsers));
-      alert("登録成功");
-      populateUserDropdowns();
+    const ADMIN_PASSWORD = '1234';
+    // State Variables
+    let playerName = '';
+    let questions = [];
+    let registeredUsers = [];
+    let current = 0, score = 0;
+    let lastAnsweredIndex = -1;
+    let userAnswers = [], incorrectQuestions = [], retryMode = false, wrongAnswers = [];
+    let keyupLock = false;
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+
+    // DOM Elements
+    const header = document.querySelector("header");
+    const startScreen = document.getElementById("start-screen");
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const userSelect = document.getElementById("user-select");
+    const loginPasswordInput = document.getElementById("login-password");
+    const newUsernameInput = document.getElementById("new-username");
+    const registerPasswordInput = document.getElementById("register-password");
+    const quizContainer = document.querySelector(".quiz-container");
+    const mainTitle = document.getElementById("title");
+    const startScreenTitle = document.querySelector("#start-screen h1");
+    const qEl = document.getElementById("question");
+    const inputEl = document.getElementById("inputs");
+    const feedbackEl = document.getElementById("feedback");
+    const translationEl = document.getElementById("translation");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const pdfBtn = document.getElementById("pdfBtn");
+    const wrongPdfBtn = document.getElementById("wrongPdfBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const showAllBtn = document.getElementById("showAllBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const progressBar = document.getElementById("progressBar");
+    const progressEl = document.getElementById("progress");
+    const downloadAllBtn = document.getElementById("downloadAllBtn");
+    const backToStartBtn = document.getElementById("backToStartBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
+    const historyContainer = document.getElementById("history-container");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    const historySearchInput = document.getElementById("historySearchInput");
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const deleteUserSelect = document.getElementById("delete-user-select");
+    const deleteUserBtn = document.getElementById("deleteUserBtn");
+
+    // --- User Management Functions ---
+    // NOTE: Passwords are stored in plaintext in localStorage. This is not secure for a real web application.
+    function loadUsers() {
+        registeredUsers = JSON.parse(localStorage.getItem('quizUsers')) || [];
+        populateUserDropdowns();
     }
 
-    function login() {
-      const username = document.getElementById("loginUsername").value;
-      const password = document.getElementById("loginPassword").value;
-      const user = registeredUsers.find(u => u.username === username && u.password === password);
-      if (user) {
-        currentUser = username;
-        alert(username + " さんでログインしました");
-      } else {
-        alert("ユーザー名またはパスワードが違います");
-      }
-    }
-
-    // ====== クイズ描画 ======
-    const quizContainer = document.getElementById("quiz");
-    quizData.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.classList.add("question");
-      div.innerHTML = `<p>${index + 1}. ${item.q}</p>` +
-        item.options.map(opt =>
-          `<label><input type="radio" name="q${index}" value="${opt}"> ${opt}</label>`
-        ).join("<br>");
-      quizContainer.appendChild(div);
-    });
-
-    // ====== 採点処理 ======
-    function submitQuiz() {
-      if (!currentUser) { alert("ログインしてください"); return; }
-
-      let score = 0;
-      quizData.forEach((item, index) => {
-        const selected = document.querySelector(`input[name="q${index}"]:checked`);
-        if (selected && selected.value === item.answer) { score++; }
-      });
-
-      const resultText = `あなたの得点は ${score} / ${quizData.length} 点です`;
-      document.getElementById("result").textContent = resultText;
-
-      const history = JSON.parse(localStorage.getItem("history")) || {};
-      if (!history[currentUser]) history[currentUser] = [];
-      history[currentUser].push({ score, date: new Date().toLocaleString() });
-      localStorage.setItem("history", JSON.stringify(history));
-
-      // Googleスプレッドシートに送信
-      sendResultToSheet(currentUser, score);
-    }
-
-    // ====== Googleスプレッドシート送信 ======
-    function sendResultToSheet(name, score) {
-      const url = https://script.google.com/macros/s/AKfycbzlE9dyVjaGM72umjYxd6npaybliWW7us3ROW4cg8Ck6rm5kEpMzsFSGtpCRvC0UPlz/exec; // スプレッドシート連携用
-
-      fetch(url, {
-        method: "POST",
-        body: JSON.stringify({
-          name: name,
-          score: score
-        }),
-        headers: { "Content-Type": "application/json" }
-      })
-      .then(res => res.text())
-      .then(txt => console.log("送信完了:", txt))
-      .catch(err => console.error("送信エラー:", err));
-    }
-
-    // ====== 履歴管理 ======
-    function viewHistory() {
-      const user = document.getElementById("userSelect").value;
-      const history = JSON.parse(localStorage.getItem("history")) || {};
-      const list = document.getElementById("historyList");
-      list.innerHTML = "";
-      if (history[user]) {
-        history[user].forEach(h => {
-          const li = document.createElement("li");
-          li.textContent = `${h.date} - ${h.score} 点`;
-          list.appendChild(li);
-        });
-      }
-    }
-
-    function clearHistory() {
-      const user = document.getElementById("userSelect").value;
-      if (!user) return;
-      const history = JSON.parse(localStorage.getItem("history")) || {};
-      history[user] = [];
-      localStorage.setItem("history", JSON.stringify(history));
-      viewHistory();
-    }
-
-    function downloadPDF() {
-      alert("PDF出力機能はここに統合可能です（既存処理と組み合わせ可）");
+    function saveUsers() {
+        localStorage.setItem('quizUsers', JSON.stringify(registeredUsers));
     }
 
     function populateUserDropdowns() {
-      const defaultOption = '<option value="">ユーザーを選択...</option>';
-      userSelect.innerHTML = defaultOption;
-      registeredUsers.forEach(user => {
-        userSelect.innerHTML += `<option value="${user.username}">${user.username}</option>`;
+        const defaultOption = '<option value="">ユーザーを選択...</option>';
+        const deleteDefaultOption = '<option value="">削除するユーザーを選択...</option>';
+        const options = registeredUsers.map(user => `<option value="${user.username}">${user.username}</option>`).join('');
+        userSelect.innerHTML = defaultOption + options;
+        deleteUserSelect.innerHTML = deleteDefaultOption + options;
+    }
+
+    function loginUser() {
+        const username = userSelect.value;
+        const password = loginPasswordInput.value;
+        if (!username || !password) return;
+
+        const user = registeredUsers.find(u => u.username === username);
+        if (user && user.password === password) {
+            playerName = user.username;
+            startQuiz();
+        } else {
+            alert('ユーザー名またはパスワードが違います。');
+        }
+    }
+
+    function registerAndStartUser() {
+        const newName = newUsernameInput.value.trim();
+        const newPassword = registerPasswordInput.value;
+        if (!newName || !newPassword) return;
+
+        const userExists = registeredUsers.some(u => u.username === newName);
+        if (userExists) {
+            alert('この名前は既に使用されています。');
+            return;
+        }
+
+        registeredUsers.push({ username: newName, password: newPassword });
+        registeredUsers.sort((a, b) => a.username.localeCompare(b.username));
+        saveUsers();
+        populateUserDropdowns();
+
+        playerName = newName;
+        startQuiz();
+    }
+
+    function deleteUser() {
+        const userToDelete = deleteUserSelect.value;
+        if (!userToDelete) return;
+
+        if (confirm(`本当にユーザー「${userToDelete}」を削除しますか？\nこのユーザーの全てのプレイ履歴も削除されます。この操作は元に戻せません。`)) {
+            registeredUsers = registeredUsers.filter(user => user.username !== userToDelete);
+            saveUsers();
+            let history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+            history = history.filter(record => record.name !== userToDelete);
+            localStorage.setItem('quizPlayHistory', JSON.stringify(history));
+            populateUserDropdowns();
+            displayPlayHistory();
+            alert(`ユーザー「${userToDelete}」を削除しました。`);
+        }
+    }
+
+    function startQuiz() {
+        startScreen.classList.remove('animate-in');
+        startScreen.classList.add('hidden');
+        quizContainer.classList.remove('hidden');
+        header.classList.remove('hidden');
+        initQuiz();
+    }
+
+    // --- Quiz Core Functions ---
+    function initQuiz() {
+      lastAnsweredIndex = -1; score = 0; userAnswers = []; incorrectQuestions = []; wrongAnswers = [];
+      questions = [...allQuestions];
+      loadProgress();
+      shuffle(questions);
+      current = 0;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      quizContainer.classList.remove('animate-in');
+      void quizContainer.offsetWidth;
+      quizContainer.classList.add('animate-in');
+      retryBtn.classList.add("hidden");
+      prevBtn.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      showAllBtn.classList.add("hidden");
+      qEl.style.marginBottom = "";
+      translationEl.style.marginTop = "";
+      const q = questions[current];
+      qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+      inputEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      feedbackEl.classList.remove('feedback-animate');
+      translationEl.textContent = "";
+      q.answers.forEach((_, i) => {
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.className = "input-field"; inp.id = "ans" + i;
+        inputEl.appendChild(inp);
+      });
+      const inputs = document.querySelectorAll(".input-field");
+      inputs[0].focus();
+      inputs.forEach((inp, idx) => {
+        inp.addEventListener("keydown", e => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (idx < inputs.length - 1) { inputs[idx + 1].focus(); }
+             else { keyupLock = true; checkAnswer(); }
+          }
+        });
+      });
+      if (userAnswers[current]) {
+        inputs.forEach((inp, i) => { inp.value = userAnswers[current].user[i] || ""; });
+      }
+      submitBtn.classList.remove("hidden");
+      const progressPercentage = (questions.length > 1) ? Math.round((current / (questions.length - 1)) * 100) : 0;
+      progressEl.style.width = `${progressPercentage}%`;
+    }
+
+    function checkAnswer() {
+      const q = questions[current];
+      let correct = true, answersGiven = [];
+      q.answers.forEach((ans, i) => {
+        const userAns = document.getElementById("ans" + i).value.trim();
+        answersGiven.push(userAns);
+        if (userAns.toLowerCase() !== ans.toLowerCase()) correct = false;
+      });
+      userAnswers[current] = { question: q.sentence, user: answersGiven, correct: q.answers };
+      if (!retryMode) { recalculateScore(); }
+      if (!correct) {
+        if (!incorrectQuestions.some(item => item.sentence === q.sentence)) incorrectQuestions.push(q);
+        if (!wrongAnswers.some(item => item.sentence === q.sentence)) wrongAnswers.push(q);
+      } else {
+        incorrectQuestions = incorrectQuestions.filter(item => item.sentence !== q.sentence);
+        wrongAnswers = wrongAnswers.filter(item => item.sentence !== q.sentence);
+      }
+      lastAnsweredIndex = Math.max(lastAnsweredIndex, current);
+      displayAnsweredQuestion(current);
+    }
+
+    function recalculateScore() {
+      score = userAnswers.filter(answer => {
+          if (!answer) return false;
+          return answer.user.every((userAns, i) => (userAns || "").toLowerCase() === (answer.correct[i] || "").toLowerCase());
+      }).length;
+    }
+
+    function loadNextNewQuestion() { current++; loadQuestion(); }
+
+    function displayAnsweredQuestion(index) {
+      current = index;
+      const q = questions[index];
+      const recordedEntry = userAnswers[index];
+      qEl.innerHTML = `<div>Q${current + 1} / ${questions.length}: ${q.sentence}</div><div class="jp-translation">${q.jpTranslation}</div>`;
+      inputEl.innerHTML = "";
+      q.answers.forEach((_, i) => {
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.className = "input-field"; inp.id = "ans" + i;
+        inputEl.appendChild(inp);
+      });
+      const inputs = inputEl.querySelectorAll(".input-field");
+      inputs.forEach((inp, i) => {
+        inp.value = recordedEntry.user[i] || "";
+        inp.disabled = true;
+        const wasThisPartCorrect = (recordedEntry.user[i] || "").toLowerCase() === (q.answers[i] || "").toLowerCase();
+        inp.style.borderColor = wasThisPartCorrect ? 'var(--duo-green)' : 'var(--duo-red)';
+        inp.style.borderWidth = '2px';
+      });
+      submitBtn.classList.add("hidden");
+      const userWasCorrect = recordedEntry.user.join(",").toLowerCase() === recordedEntry.correct.join(",").toLowerCase();
+      feedbackEl.className = "feedback-animate";
+      feedbackEl.textContent = userWasCorrect ? "✅ 正解！" : "❌ 不正解";
+      feedbackEl.classList.add(userWasCorrect ? "correct" : "incorrect");
+      let highlighted = q.translation;
+      q.answers.forEach(ans => {
+        highlighted = highlighted.replace(new RegExp(`\\b${ans}\\b`, "gi"), `<span style="font-weight: 900; color: red;">${ans}</span>`);
+      });
+      translationEl.innerHTML = `
+        <p><b>英文:</b> ${highlighted} <button class="button circle-button btn-green" onclick="speak('${q.translation}')">🔊</button></p>
+        <p><b>答え:</b> ${q.answers.join(", ")} ${q.answers.map(ans => `<button class="button circle-button btn-green" onclick="speak('${ans}')">🔊</button>`).join(" ")}</p>
+        <p><b>日本語訳:</b> ${q.blanksTranslation.join(", ")}</p>`;
+      const isLastQuestion = index === questions.length - 1;
+      prevBtn.classList.toggle("hidden", index <= 0);
+      showAllBtn.classList.toggle("hidden", !(isLastQuestion && current === lastAnsweredIndex));
+      nextBtn.classList.toggle("hidden", isLastQuestion);
+    }
+
+    function goToPreviousQuestion() { if (current > 0) { current--; loadQuestion(); } }
+    function handleNextClick() { (current < lastAnsweredIndex) ? displayAnsweredQuestion(current + 1) : loadNextNewQuestion(); }
+
+    function showAllResults() {
+      progressBar.classList.add("hidden");
+      const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+      savePlayHistory(playerName, finalScoreText);
+      displayPlayHistory();
+      
+      // ▼▼▼ [変更] Googleスプレッドシートへの送信処理を追加 ▼▼▼
+      const resultData = {
+        name: playerName,
+        score: finalScoreText,
+        results: userAnswers.filter(answer => answer !== null)
+      };
+      sendResultsToGoogleSheet(resultData);
+      // ▲▲▲ ▲▲▲
+      
+      scoreBoard.textContent = `スコア: ${finalScoreText}`;
+      qEl.textContent = "全結果";
+      inputEl.innerHTML = "";
+      feedbackEl.textContent = "";
+      translationEl.innerHTML = "";
+      qEl.style.marginBottom = "0";
+      translationEl.style.marginTop = "5px";
+      translationEl.innerHTML = `<p style="margin: 0;"><b>名前:</b> ${playerName}</p><p><b>スコア:</b> ${finalScoreText}</p>`;
+      userAnswers.forEach((entry, idx) => {
+        if (!entry) return;
+        const originalQuestion = allQuestions.find(q => q.sentence === entry.question);
+        if (!originalQuestion) return;
+        let highlightedSentence = originalQuestion.translation;
+        originalQuestion.answers.forEach(ans => {
+          highlightedSentence = highlightedSentence.replace(new RegExp(`\\b(${ans})\\b`, 'gi'), `<span style="font-weight: 900; color: red;">$1</span>`);
+        });
+        const userAnswersGiven = entry.user.join(", ");
+        const isAnswerCorrect = userAnswersGiven.toLowerCase() === entry.correct.join(", ").toLowerCase();
+        let yourAnswerHTML = isAnswerCorrect ? `<p style="margin: 5px 0;"><b>あなたの回答:</b> ${userAnswersGiven} <span style="color: var(--duo-green);">✅</span></p>` : `<p style="margin: 5px 0;"><b>あなたの回答:</b> <span style="color: var(--duo-red);">${userAnswersGiven || "(無回答)"}</span> ❌</p>`;
+        const div = document.createElement("div");
+        div.style.cssText = "text-align: left; margin: 15px 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;";
+        div.innerHTML = `<p style="margin: 5px 0;"><b>Q${idx + 1}:</b> ${highlightedSentence}</p><p style="margin: 5px 0; color: #555; font-size: 14px;"><b>和訳:</b> ${originalQuestion.jpTranslation}</p>${yourAnswerHTML}`;
+        translationEl.appendChild(div);
+      });
+      pdfBtn.classList.remove("hidden");
+      backToStartBtn.classList.remove("hidden");
+      backToStartBtn.textContent = "ログアウト";
+      if (wrongAnswers.length > 0) wrongPdfBtn.classList.remove("hidden");
+      if (incorrectQuestions.length > 0) {
+        retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+        retryBtn.classList.remove("hidden");
+      } else { retryBtn.classList.add("hidden"); }
+      showAllBtn.classList.add("hidden"); nextBtn.classList.add("hidden"); prevBtn.classList.add("hidden");
+    }
+
+    // --- History & Data Functions ---
+    function savePlayHistory(name, scoreText) {
+      const date = new Date();
+      const formattedDate = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      const newRecord = { name, score: scoreText, date: formattedDate, results: JSON.parse(JSON.stringify(userAnswers)) };
+      const history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      history.unshift(newRecord);
+      localStorage.setItem('quizPlayHistory', JSON.stringify(history));
+    }
+
+    function displayPlayHistory(searchTerm = '') {
+      let history = JSON.parse(localStorage.getItem('quizPlayHistory')) || [];
+      const historyList = document.getElementById('history-list');
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      if (lowerCaseSearchTerm) {
+        history = history.filter(record => `[${record.date}] ${record.name} - スコア: ${record.score}`.toLowerCase().includes(lowerCaseSearchTerm));
+      }
+      historyList.innerHTML = '';
+      history.forEach(record => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `[${record.date}] ${record.name} - スコア: ${record.score}`;
+        listItem.title = 'この結果をPDFでダウンロード';
+        listItem.addEventListener('click', () => downloadHistoryPDF(record));
+        historyList.appendChild(listItem);
       });
     }
 
-    populateUserDropdowns();
+    function restartQuiz() { window.location.reload(); }
+
+    function retryIncorrect() {
+      if (incorrectQuestions.length === 0) return;
+      lastAnsweredIndex = -1; score = 0; userAnswers = []; wrongAnswers = [];
+      questions = [...incorrectQuestions];
+      incorrectQuestions = [];
+      retryMode = true;
+      scoreBoard.textContent = "";
+      progressBar.classList.remove("hidden");
+      pdfBtn.classList.add("hidden"); wrongPdfBtn.classList.add("hidden"); retryBtn.classList.add("hidden");
+      backToStartBtn.classList.add("hidden");
+      quizContainer.classList.remove("hidden");
+      header.classList.remove("hidden");
+      current = 0;
+      loadQuestion();
+    }
+
+    // ▼▼▼ [追加] Google Apps Scriptへデータを送信する関数 ▼▼▼
+    /**
+     * 結果をGoogleスプレッドシートに送信する
+     * @param {Object} resultData - 送信するデータオブジェクト
+     */
+    async function sendResultsToGoogleSheet(resultData) {
+      const placeholderUrl = 'https://script.google.com/macros/s/AKfycbx57OWoRdW049r475_pdWF6FApnmeg2UwWhHO-kVLiSNKPkg7NNbO1Y_Fi1M0IBX11M2A/exec';
+      if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === placeholderUrl) {
+        console.warn('GASのURLが設定されていません。結果はスプレッドシートに送信されません。');
+        return;
+      }
+    
+      const savingStatusEl = document.getElementById('savingStatus');
+      if (savingStatusEl) savingStatusEl.textContent = '結果をスプレッドシートに保存中...';
+
+      try {
+        // GAS Web AppではCORSエラーを回避するために 'no-cors' モードが有効な場合が多い
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors', 
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(resultData),
+          redirect: 'follow'
+        });
+
+        console.log('スプレッドシートへの結果送信リクエストが完了しました。');
+        if (savingStatusEl) savingStatusEl.textContent = '結果が保存されました！';
+
+      } catch (error) {
+        console.error('結果の送信中にエラーが発生しました:', error);
+        if (savingStatusEl) savingStatusEl.textContent = 'エラー：結果の保存に失敗しました。';
+      }
+    }
+    // ▲▲▲ ▲▲▲
+
+    // --- Utility Functions ---
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+    function saveProgress() {
+      localStorage.setItem('eikenQuizIncorrect', JSON.stringify(incorrectQuestions.map(q => q.sentence)));
+    }
+    function loadProgress() {
+      try {
+        const savedIncorrect = localStorage.getItem('eikenQuizIncorrect');
+        if (savedIncorrect) {
+          const incorrectSentences = JSON.parse(savedIncorrect);
+          if (Array.isArray(incorrectSentences)) {
+            const loadedIncorrect = allQuestions.filter(q => incorrectSentences.includes(q.sentence));
+            if (loadedIncorrect.length > 0) {
+              incorrectQuestions = loadedIncorrect;
+              retryBtn.textContent = `間違えた ${incorrectQuestions.length} 問に再挑戦`;
+              retryBtn.classList.remove("hidden");
+            }
+          }
+        }
+      } catch (e) {
+        console.error("保存データの読み込みに失敗しました:", e);
+        localStorage.removeItem('eikenQuizIncorrect');
+      }
+    }
+    function speak(text) {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.voice = speechSynthesis.getVoices().find(v => v.lang === "en-US" && v.name.includes("Female")) || null;
+      speechSynthesis.speak(u);
+    }
+
+    // --- PDF Generation Functions ---
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let usernameForPdf = wanakana.isJapanese(playerName) ? wanakana.toRomaji(playerName) : playerName;
+      const finalScoreText = retryMode ? `${score} / ${questions.length}` : `${score} / ${allQuestions.length}`;
+      doc.setFontSize(14); doc.text("Quiz Results", 10, 10);
+      if (usernameForPdf) doc.text(`Name: ${usernameForPdf}`, 10, 20);
+      doc.text(`Score: ${finalScoreText}`, 10, 30);
+      let y = 40;
+      userAnswers.forEach((entry, idx) => {
+        if (!entry) return;
+        const linesQ = doc.splitTextToSize(`Q${idx + 1}: ${entry.question}`, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 7;
+        const linesU = doc.splitTextToSize(`Your Answer: ${entry.user.join(", ")}`, 180);
+        doc.text(linesU, 10, y); y += linesU.length * 7;
+        const linesC = doc.splitTextToSize(`Correct Answer: ${entry.correct.join(", ")}`, 180);
+        doc.text(linesC, 10, y); y += linesC.length * 7 + 5;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      doc.save("quiz_results.pdf");
+    }
+    function downloadWrongPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(14); doc.text("Wrong Vocabulary Results", 10, 10);
+      let y = 20;
+      wrongAnswers.forEach((q, idx) => {
+        const linesQ = doc.splitTextToSize(`${idx + 1}. ${q.sentence}`, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 8;
+        const linesA = doc.splitTextToSize(`Answer: ${q.answers.join(", ")}`, 180);
+        doc.text(linesA, 10, y); y += linesA.length * 8 + 5;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      doc.save("Wrong-vocab.pdf");
+    }
+    function downloadHistoryPDF(historyRecord) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let usernameForPdf = wanakana.isJapanese(historyRecord.name) ? wanakana.toRomaji(historyRecord.name) : historyRecord.name;
+      doc.setFontSize(16); doc.text("Quiz Results", 105, 15, null, null, "center");
+      doc.setFontSize(12);
+      doc.text(`Name: ${usernameForPdf}`, 10, 25);
+      doc.text(`Score: ${historyRecord.score}`, 10, 32);
+      doc.text(`Date: ${historyRecord.date}`, 10, 39);
+      let y = 50;
+      historyRecord.results.forEach((entry, idx) => {
+        if (!entry) return;
+        if (y > 270) { doc.addPage(); y = 20; }
+        const isCorrect = entry.user.join(",").toLowerCase() === entry.correct.join(",").toLowerCase();
+        doc.setFontSize(12); doc.text(`Q${idx + 1}: ${entry.question}`, 10, y); y += 7;
+        doc.setFontSize(10); doc.setTextColor(isCorrect ? '#28a745' : '#dc3545');
+        doc.text(`Your Answer: ${entry.user.join(", ") || "(no answer)"}`, 15, y); y += 7;
+        if (!isCorrect) {
+          doc.setTextColor('#333333');
+          doc.text(`Correct Answer: ${entry.correct.join(", ")}`, 15, y); y += 7;
+        }
+        y += 5;
+      });
+      const datePart = historyRecord.date.replace(/[/:\s]/g, '-');
+      const namePart = usernameForPdf.replace(/\s/g, '_');
+      doc.save(`${datePart}-${namePart}.pdf`);
+    }
+    function downloadAllQuestionsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16); doc.text("Eiken Pre-1 Vocabulary List", 10, 15);
+      let y = 25;
+      doc.setFontSize(12);
+      allQuestions.forEach((q, idx) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        const questionText = `${idx + 1}. ${q.sentence.replace('___', `[ ${q.answers[0]} ]`)}`;
+        const linesQ = doc.splitTextToSize(questionText, 180);
+        doc.text(linesQ, 10, y); y += linesQ.length * 7 + 5;
+      });
+      doc.save("Eiken-Pre-1-Vocab-List.pdf");
+    }
+
+    // --- Event Listeners ---
+    // Quiz Buttons
+    pdfBtn.onclick = downloadPDF;
+    wrongPdfBtn.onclick = downloadWrongPDF;
+    submitBtn.onclick = checkAnswer;
+    nextBtn.onclick = handleNextClick;
+    prevBtn.onclick = goToPreviousQuestion;
+    showAllBtn.onclick = showAllResults;
+    retryBtn.onclick = retryIncorrect;
+    downloadAllBtn.onclick = downloadAllQuestionsPDF;
+    backToStartBtn.onclick = restartQuiz;
+
+    // Login/Register
+    loginBtn.addEventListener('click', loginUser);
+    registerBtn.addEventListener('click', registerAndStartUser);
+
+    function validateLoginFields() {
+        loginBtn.disabled = userSelect.value === '' || loginPasswordInput.value === '';
+    }
+    function validateRegisterFields() {
+        registerBtn.disabled = newUsernameInput.value.trim() === '' || registerPasswordInput.value === '';
+    }
+    userSelect.addEventListener('change', validateLoginFields);
+    loginPasswordInput.addEventListener('input', validateLoginFields);
+    newUsernameInput.addEventListener('input', validateRegisterFields);
+    registerPasswordInput.addEventListener('input', validateRegisterFields);
+    loginPasswordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { loginBtn.click(); }
+    });
+    registerPasswordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { registerBtn.click(); }
+    });
+
+    // History Panel
+    toggleHistoryBtn.addEventListener('click', () => {
+      if (historyContainer.classList.contains('show')) {
+        historyContainer.classList.remove('show');
+      } else {
+        const inputPassword = prompt('管理者パスワードを入力してください:');
+        if (inputPassword === ADMIN_PASSWORD) {
+          historyContainer.classList.add('show');
+        } else if (inputPassword !== null) {
+          alert('パスワードが違います。');
+        }
+      }
+    });
+    closeHistoryBtn.onclick = () => historyContainer.classList.remove('show');
+    clearHistoryBtn.addEventListener('click', () => {
+      const inputPassword = prompt('履歴を削除するには管理者パスワードを入力してください:');
+      if (inputPassword === ADMIN_PASSWORD) {
+        if (confirm('本当によろしいですか？全てのプレイ履歴が完全に削除されます。\n(ユーザーは削除されません)')) {
+          localStorage.removeItem('quizPlayHistory');
+          historySearchInput.value = '';
+          displayPlayHistory();
+          alert('履歴を削除しました。');
+        }
+      } else if (inputPassword !== null) {
+        alert('パスワードが違います。');
+      }
+    });
+    historySearchInput.addEventListener('input', () => displayPlayHistory(historySearchInput.value));
+
+    // User Deletion (in History Panel)
+    deleteUserBtn.addEventListener('click', deleteUser);
+    deleteUserSelect.addEventListener('change', () => {
+        deleteUserBtn.disabled = deleteUserSelect.value === '';
+    });
+
+    // Secret Title Click
+    function secretClickHandler() {
+      titleClickCount++;
+      clearTimeout(titleClickTimer);
+      titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1500);
+      if (titleClickCount >= 5) {
+        titleClickCount = 0; clearTimeout(titleClickTimer);
+        toggleHistoryBtn.click();
+      }
+    }
+    mainTitle.addEventListener('click', secretClickHandler);
+    startScreenTitle.addEventListener('click', secretClickHandler);
+
+    // Keyboard Shortcuts
+    document.addEventListener('keyup', (event) => {
+      if (event.key !== 'Enter') return;
+      if (keyupLock) { keyupLock = false; return; }
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+      if (!nextBtn.classList.contains('hidden')) handleNextClick();
+      else if (!showAllBtn.classList.contains('hidden')) showAllResults();
+    });
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+      displayPlayHistory();
+    });
   </script>
 </body>
 </html>
